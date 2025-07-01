@@ -1,15 +1,14 @@
-/*import LoginPage from './components/LoginPage/LoginPage.jsx'*/
-import DiningLocation from './components/Dining Location/DiningLocation.jsx'
+import { BrowserRouter as Router } from 'react-router-dom';
+import AppRoutes from './components/routes/AppRoutes';
+
+
+
 function App() {
-  return(
-    <>
-    
-
-    <DiningLocation/>
-    
-    </>
-
-  )
+  return (
+    <Router>
+      <AppRoutes />
+    </Router>
+  );
 }
 
-export default App
+export default App;

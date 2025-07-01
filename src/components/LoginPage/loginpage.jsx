@@ -1,8 +1,20 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AiOutlineEye, AiOutlineMail, AiOutlineLock } from 'react-icons/ai';
 import styles from './LoginPage.module.css';
 
 function LoginPage() {
+
+  
+  const navigate = useNavigate();
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    navigate('/dining-location');
+  };
+
+
+
   return (
     <div className={styles.loginContainer}>
     <div className={styles.loginCard}>
@@ -38,7 +50,7 @@ function LoginPage() {
           </div>
         </div>
 
-        <button className={styles.submitButton}>
+        <button className={styles.submitButton} onClick={handleLogin}>
           Sign In
         </button>
       </div>
