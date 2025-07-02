@@ -8,7 +8,6 @@ function ProductCard({ item, onAddToCart }) {
       </div>
       <div className="item-content">
         <h3 className="item-name">{item.name}</h3>
-        <p className="item-description">{item.description}</p>
         <div className="item-price">₱{item.price.toFixed(2)}</div>
       </div>
     </div>

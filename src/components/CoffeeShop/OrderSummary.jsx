@@ -8,7 +8,6 @@ function OrderSummary({ orderType, totalPrice, totalItems, onCancel, onDone }) {
       </div>
       <div className="order-total">
         <span>Total: ₱{totalPrice.toFixed(2)} - {totalItems} Items</span>
-        <button className="view-order-btn">View Order &gt;&gt;</button>
       </div>
       <div className="order-actions">
         <button className="cancel-btn" onClick={onCancel}>Cancel Order</button>

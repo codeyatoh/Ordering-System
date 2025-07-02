@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import LoginPage from '../LoginPage/loginpage'
-import DiningLocation from '../Dining Location/dininglocation'
+import DiningLocation from '../DiningLocation/dininglocation'
 import CoffeeShop from '../CoffeeShop/CoffeeShop'
 
 function AppRoutes() {

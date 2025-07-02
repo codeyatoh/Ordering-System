@@ -4,6 +4,10 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import ProductGrid from './ProductGrid';
 import OrderSummary from './OrderSummary';
+import ListOrderModal from '../ModalOrder/ListOrderModal';
+import CoffeeModal from '../ModalOrder/coffeeModal';
+import BreadModal from '../ModalOrder/breadModal';
+import OrderList from './OrderList';
 import './CoffeeShop.css';
 
 function CoffeeShop() {
@@ -11,6 +15,12 @@ function CoffeeShop() {
   const orderType = location.state?.orderType || 'dine-in';
   const [activeCategory, setActiveCategory] = useState('coffee');
   const [cart, setCart] = useState([]);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
+  const [isBreadModalOpen, setIsBreadModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState('regular');
 
   const coffeeItems = [
     { id: 1, name: 'Caramel Dream Latte', description: 'Velvety espresso layered with steamed milk and drizzled with golden caramel syrup. A sweet escape in every sip.', price: 145.00, image: '/api/placeholder/300/200' },
@@ -59,6 +69,29 @@ function CoffeeShop() {
     setCart([]);
   };
 
+  const handleViewOrder = () => {
+    setIsOrderModalOpen(true);
+  };
+
+  const handleCloseOrderModal = () => {
+    setIsOrderModalOpen(false);
+  };
+
+  const handleViewProduct = (item) => {
+    setSelectedItem(item);
+    setSelectedQuantity(item.quantity || 1);
+    if (item.id <= 6) { // coffee
+      setSelectedSize('regular');
+      setIsCoffeeModalOpen(true);
+    } else { // bread/pastry
+      setIsBreadModalOpen(true);
+    }
+  };
+
+  const handleRemoveItem = (item) => {
+    setCart(cart.filter(cartItem => cartItem.id !== item.id));
+  };
+
   const currentItems = activeCategory === 'coffee' ? coffeeItems : pastryItems;
 
   return (
@@ -72,6 +105,7 @@ function CoffeeShop() {
           </h2>
           <ProductGrid items={currentItems} onAddToCart={addToCart} />
         </main>
+        <OrderList cart={cart} onEditItem={handleViewProduct} onRemoveItem={handleRemoveItem} />
       </div>
       <OrderSummary 
         orderType={orderType} 
@@ -79,6 +113,44 @@ function CoffeeShop() {
         totalItems={getTotalItems()} 
         onCancel={handleCancel} 
         onDone={handleDone}
+      />
+      <CoffeeModal 
+        isOpen={isCoffeeModalOpen} 
+        onClose={() => setIsCoffeeModalOpen(false)} 
+        item={selectedItem} 
+        quantity={selectedQuantity} 
+        size={selectedSize}
+        onQuantityChange={setSelectedQuantity}
+        onSizeChange={setSelectedSize}
+        onAddOrder={() => {
+          setCart(cart.map(cartItem => 
+            cartItem.id === selectedItem.id 
+              ? { ...cartItem, quantity: selectedQuantity, size: selectedSize }
+              : cartItem
+          ));
+          setIsCoffeeModalOpen(false);
+        }}
+        onCancelOrder={() => {
+          setIsCoffeeModalOpen(false);
+        }}
+      />
+      <BreadModal
+        isOpen={isBreadModalOpen}
+        onClose={() => setIsBreadModalOpen(false)}
+        item={selectedItem}
+        quantity={selectedQuantity}
+        onQuantityChange={setSelectedQuantity}
+        onAddOrder={() => {
+          setCart(cart.map(cartItem =>
+            cartItem.id === selectedItem.id
+              ? { ...cartItem, quantity: selectedQuantity }
+              : cartItem
+          ));
+          setIsBreadModalOpen(false);
+        }}
+        onCancelOrder={() => {
+          setIsBreadModalOpen(false);
+        }}
       />
     </div>
   );
