@@ -4,7 +4,6 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import ProductGrid from './ProductGrid';
 import OrderSummary from './OrderSummary';
-import ListOrderModal from '../ModalOrder/ListOrderModal';
 import CoffeeModal from '../ModalOrder/coffeeModal';
 import BreadModal from '../ModalOrder/breadModal';
 import OrderList from './OrderList';
@@ -94,6 +93,28 @@ function CoffeeShop() {
 
   const currentItems = activeCategory === 'coffee' ? coffeeItems : pastryItems;
 
+  const handleAddCoffeeOrders = (orders) => {
+    setCart(prevCart => {
+      const newCart = [...prevCart];
+      orders.forEach(order => {
+        // Find if an item with the same name and size exists
+        const idx = newCart.findIndex(
+          item => item.name === order.name && item.size === order.size
+        );
+        if (idx !== -1) {
+          // Merge quantities
+          newCart[idx] = {
+            ...newCart[idx],
+            quantity: newCart[idx].quantity + order.quantity,
+          };
+        } else {
+          newCart.push(order);
+        }
+      });
+      return newCart;
+    });
+  };
+
   return (
     <div className="coffee-shop">
       <Header />
@@ -122,14 +143,7 @@ function CoffeeShop() {
         size={selectedSize}
         onQuantityChange={setSelectedQuantity}
         onSizeChange={setSelectedSize}
-        onAddOrder={() => {
-          setCart(cart.map(cartItem => 
-            cartItem.id === selectedItem.id 
-              ? { ...cartItem, quantity: selectedQuantity, size: selectedSize }
-              : cartItem
-          ));
-          setIsCoffeeModalOpen(false);
-        }}
+        onAddOrder={handleAddCoffeeOrders}
         onCancelOrder={() => {
           setIsCoffeeModalOpen(false);
         }}

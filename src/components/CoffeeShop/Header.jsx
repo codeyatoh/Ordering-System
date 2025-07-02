@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TbLogout } from 'react-icons/tb';
 import logo from '../../assets/images/logo.png';
+import LogoutModal from '../ModalOrder/LogoutModal';
 
 function Header() {
+  const [showLogout, setShowLogout] = useState(false);
+
   const handleLogout = () => {
-    // Add logout logic here
-    console.log('Logout clicked');
+    setShowLogout(true);
+  };
+
+  const handleClose = () => {
+    setShowLogout(false);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogout(false);
+    // Add actual logout logic here (e.g., redirect, clear session, etc.)
+    console.log('User logged out');
   };
 
   return (
@@ -20,6 +32,7 @@ function Header() {
           <TbLogout className="logout-icon" />
         </button>
       </div>
+      <LogoutModal isOpen={showLogout} onClose={handleClose} onLogout={handleConfirmLogout} />
     </header>
   );
 }

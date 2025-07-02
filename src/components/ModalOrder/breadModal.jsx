@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './ListOrderModal.module.css';
+import styles from './OrderModal.module.css';
 
 function BreadModal({ isOpen, onClose, item, quantity, onQuantityChange, onAddOrder, onCancelOrder }) {
   if (!isOpen || !item) return null;

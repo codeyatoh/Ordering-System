@@ -3,16 +3,47 @@ import { FiEye } from 'react-icons/fi';
 import { AiOutlineMinusCircle } from 'react-icons/ai';
 import './CoffeeShop.css';
 
+function groupCartItems(cart) {
+  // Group by name for coffee, aggregate sizes and quantities
+  const grouped = {};
+  cart.forEach(item => {
+    const key = item.name;
+    if (!grouped[key]) {
+      grouped[key] = { ...item, totalQty: 0, totalPrice: 0, sizes: {} };
+    }
+    grouped[key].totalQty += item.quantity;
+    grouped[key].totalPrice += item.price * item.quantity;
+    if (item.sizeLabel) {
+      grouped[key].sizes[item.sizeLabel] = (grouped[key].sizes[item.sizeLabel] || 0) + item.quantity;
+    }
+  });
+  return Object.values(grouped);
+}
+
+function getCoffeeSummary(item) {
+  const sizeEntries = Object.entries(item.sizes || {});
+  // Always show size, even if only one size is present
+  const sizeStr = sizeEntries.length > 0
+    ? sizeEntries.map(([size, qty]) => `${qty} ${size}`).join(', ')
+    : `${item.totalQty} cup${item.totalQty > 1 ? 's' : ''}`;
+  return `₱${item.totalPrice} — ${item.totalQty} cup${item.totalQty > 1 ? 's' : ''} (${sizeStr})`;
+}
+
+function getPastrySummary(item) {
+  return `₱${item.totalPrice} — ${item.totalQty} pcs`;
+}
+
 function OrderList({ cart, onEditItem, onRemoveItem }) {
+  const groupedCart = groupCartItems(cart);
   return (
     <aside className="order-list-viewport">
       <h2 className="order-list-title">Order List:</h2>
       <div className="order-list-content">
-        {cart.length === 0 ? (
+        {groupedCart.length === 0 ? (
           <div className="order-list-empty">No items in your order.</div>
         ) : (
           <ul className="order-list-items">
-            {cart.map((item) => (
+            {groupedCart.map((item) => (
               <li key={item.id} className="order-list-item">
                 <div className="order-list-item-imgbox">
                   <img src={item.image} alt={item.name} className="order-list-item-img" />
@@ -20,8 +51,11 @@ function OrderList({ cart, onEditItem, onRemoveItem }) {
                 <div className="order-list-item-info">
                   <span className="order-list-item-name">{item.name}</span>
                   <div className="order-list-item-details">
-                    <span className="order-list-item-qty">x{item.quantity}</span>
-                    <span className="order-list-item-price">₱{(item.price * item.quantity).toFixed(2)}</span>
+                    {item.sizes && Object.keys(item.sizes).length > 0 ? (
+                      <span className="order-list-item-summary">{getCoffeeSummary(item)}</span>
+                    ) : (
+                      <span className="order-list-item-summary">{getPastrySummary(item)}</span>
+                    )}
                   </div>
                 </div>
                 <div className="order-list-item-actions">
