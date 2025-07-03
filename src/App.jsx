@@ -4,6 +4,8 @@ import AppRoutes from './components/routes/AppRoutes';
 import { ToastContainer } from 'react-toastify';
 import './toastify-custom.css';
 import { UserProvider } from './context/UserContext';
+import { db } from "./firebase";
+import { collection, addDoc } from 'firebase/firestore';
 
 function App() {
   return (
