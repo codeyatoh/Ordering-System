@@ -1,11 +1,14 @@
 import React from 'react';
 import styles from './OrderModal.module.css';
+import { handleSingleQuantityChange } from '../../handlers/modalHandlers';
 
 function BreadModal({ isOpen, onClose, item, quantity, onQuantityChange, onAddOrder, onCancelOrder }) {
   if (!isOpen || !item) return null;
 
   const basePrice = item.price;
   const totalCost = basePrice * quantity;
+
+  const quantityChange = handleSingleQuantityChange(onQuantityChange);
 
   return (
     <div className={styles['modal-overlay']}>
@@ -26,9 +29,9 @@ function BreadModal({ isOpen, onClose, item, quantity, onQuantityChange, onAddOr
         <div className={styles['modal-content']} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div className={styles['coffee-modal-quantity-label']}>Quantity</div>
           <div className={styles['coffee-modal-quantity-controls']}>
-            <button className={styles['icon-btn']} onClick={() => onQuantityChange(quantity - 1)} disabled={quantity <= 1}>&minus;</button>
+            <button className={styles['icon-btn']} onClick={() => quantityChange(-1)} disabled={quantity <= 1}>&minus;</button>
             <span className={styles['coffee-modal-quantity-value']}>{quantity}</span>
-            <button className={styles['icon-btn']} onClick={() => onQuantityChange(quantity + 1)}>&#43;</button>
+            <button className={styles['icon-btn']} onClick={() => quantityChange(1)}>&#43;</button>
           </div>
         </div>
         <div className={styles['coffee-modal-footer']}>

@@ -2,16 +2,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlineEye, AiOutlineMail, AiOutlineLock } from 'react-icons/ai';
 import styles from './LoginPage.module.css';
+import { handleLogin } from '../../handlers/authHandlers';
 
 function LoginPage() {
-
-  
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    navigate('/dining-location');
-  };
+  // Handler import
+  const login = handleLogin(navigate);
 
   return (
     <div className={styles.loginContainer}>
@@ -44,7 +41,7 @@ function LoginPage() {
               </button>
             </div>
           </div>
-          <button className={styles.submitButton} onClick={handleLogin}>
+          <button className={styles.submitButton} onClick={login}>
             Sign In
           </button>
         </div>

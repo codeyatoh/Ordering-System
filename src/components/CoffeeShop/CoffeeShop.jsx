@@ -1,3 +1,4 @@
+// This is the main CoffeeShop page component
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from './Header';
@@ -8,19 +9,28 @@ import CoffeeModal from '../Modal/coffeeModal';
 import BreadModal from '../Modal/breadModal';
 import OrderList from './OrderList';
 import './CoffeeShop.css';
+import { handleCancel, handleRemoveItem, handleAddCoffeeOrder, handleAddBreadOrder, handleAddToCart } from '../../handlers/cartHandlers';
 
 function CoffeeShop() {
+  // Get the order type (dine-in or take-out) from the previous page
   const location = useLocation();
   const orderType = location.state?.orderType || 'dine-in';
+
+  // State for which category is active (coffee or bread)
   const [activeCategory, setActiveCategory] = useState('coffee');
+  // State for the cart (list of items added)
   const [cart, setCart] = useState([]);
+  // State for showing/hiding modals
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
   const [isBreadModalOpen, setIsBreadModalOpen] = useState(false);
+  // State for the currently selected item and its details
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('regular');
+  const [selectedQuantities, setSelectedQuantities] = useState({ regular: 1, medium: 0, large: 0 });
 
+  // List of coffee products
   const coffeeItems = [
     { id: 1, name: 'Caramel Dream Latte', description: 'Velvety espresso layered with steamed milk and drizzled with golden caramel syrup. A sweet escape in every sip.', price: 145.00, image: '/api/placeholder/300/200' },
     { id: 2, name: 'Hazelnut Bliss Brew', description: 'A smooth, aromatic coffee with a warm hazelnut twist—perfect for cozy mornings or chill afternoons.', price: 135.00, image: '/api/placeholder/300/200' },
@@ -30,6 +40,7 @@ function CoffeeShop() {
     { id: 6, name: 'Classic Americano', description: 'A no-fuss classic—just espresso and hot water, bold and invigorating with a smooth finish.', price: 110.00, image: '/api/placeholder/300/200' }
   ];
 
+  // List of bread and pastry products
   const pastryItems = [
     { id: 7, name: 'Chocolate Chip Croissant', description: 'Flaky, buttery layers wrapped around luscious melted chocolate chips. A Popular treat with a sweet surprise.', price: 85.00, image: '/api/placeholder/300/200' },
     { id: 8, name: 'Cheesy Garlic Bun', description: 'Soft, golden bread infused with garlic butter and melted with real cheese. Irresistibly savory.', price: 75.00, image: '/api/placeholder/300/200' },
@@ -39,134 +50,81 @@ function CoffeeShop() {
     { id: 12, name: 'Strawberry Cream Danish', description: 'Flaky pastry filled with sweet cream cheese and topped with luscious strawberry compote.', price: 95.00, image: '/api/placeholder/300/200' }
   ];
 
-  const addToCart = (item) => {
-    // If coffee (id 1-6), add sizeLabel: 'Regular' if not present
-    const isCoffee = item.id >= 1 && item.id <= 6;
-    const itemWithSize = isCoffee && !item.sizeLabel
-      ? { ...item, sizeLabel: 'Regular' }
-      : item;
-    const existingItem = cart.find(cartItem => cartItem.id === item.id && (!isCoffee || cartItem.sizeLabel === (itemWithSize.sizeLabel || 'Regular')));
-    if (existingItem) {
-      setCart(cart.map(cartItem => 
-        cartItem.id === item.id && (!isCoffee || cartItem.sizeLabel === (itemWithSize.sizeLabel || 'Regular'))
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      ));
-    } else {
-      setCart([...cart, { ...itemWithSize, quantity: 1 }]);
-    }
-  };
+  // Set up handler functions for cart actions (imported from handlers)
+  const cancelOrder = handleCancel(setCart);
+  const removeItem = handleRemoveItem(cart, setCart);
+  const addCoffeeOrder = handleAddCoffeeOrder(cart, setCart, coffeeItems, setIsCoffeeModalOpen);
+  const addBreadOrder = handleAddBreadOrder(cart, setCart, selectedItem, selectedQuantity, setIsBreadModalOpen);
+  const addToCart = handleAddToCart(cart, setCart, setIsCoffeeModalOpen, setSelectedItem, setSelectedQuantities);
 
-  const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const getTotalItems = () => {
-    return cart.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  const handleCancel = () => {
-    setCart([]);
-  };
-
-  const handleDone = () => {
-    setCart([]);
-  };
-
-  const handleViewOrder = () => {
-    setIsOrderModalOpen(true);
-  };
-
-  const handleCloseOrderModal = () => {
-    setIsOrderModalOpen(false);
-  };
-
+  // This function opens the modal to view/edit a product (coffee or bread)
   const handleViewProduct = (item) => {
     setSelectedItem(item);
-    setSelectedQuantity(item.quantity || 1);
-    if (item.id <= 6) { // coffee
-      setSelectedSize('regular');
+    if (item.id <= 6) { // If item is coffee
+      setSelectedQuantities(item.quantities || { regular: 1, medium: 0, large: 0 });
       setIsCoffeeModalOpen(true);
-    } else { // bread/pastry
+    } else { // If item is bread/pastry
+      setSelectedQuantity(item.quantity || 1);
       setIsBreadModalOpen(true);
     }
   };
 
-  const handleRemoveItem = (item) => {
-    setCart(cart.filter(cartItem => cartItem.id !== item.id));
+  // Calculate the total price of all items in the cart
+  const getTotalPrice = () => {
+    return cart.reduce((total, item) => total + (item.price * (item.quantity || 0) + (item.quantities ? Object.entries(item.quantities).reduce((sum, [size, qty]) => sum + ((item.price + (size === 'medium' ? 10 : size === 'large' ? 20 : 0)) * qty), 0) : 0)), 0);
   };
 
-  const currentItems = activeCategory === 'coffee' ? coffeeItems : pastryItems;
-
-  const handleAddCoffeeOrders = (orders) => {
-    setCart(prevCart => {
-      const newCart = [...prevCart];
-      orders.forEach(order => {
-        // Find if an item with the same name and size exists
-        const idx = newCart.findIndex(
-          item => item.name === order.name && item.size === order.size
-        );
-        if (idx !== -1) {
-          // Merge quantities
-          newCart[idx] = {
-            ...newCart[idx],
-            quantity: newCart[idx].quantity + order.quantity,
-          };
-        } else {
-          newCart.push(order);
-        }
-      });
-      return newCart;
-    });
+  // Calculate the total number of items in the cart
+  const getTotalItems = () => {
+    return cart.reduce((total, item) => total + (item.quantity || 0) + (item.quantities ? Object.values(item.quantities).reduce((sum, qty) => sum + qty, 0) : 0), 0);
   };
 
+  // Render the CoffeeShop page
   return (
     <div className="coffee-shop">
+      {/* Top header bar */}
       <Header />
       <div className="main-content">
+        {/* Sidebar for switching categories */}
         <Sidebar activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
         <main className="menu-content">
+          {/* Show which category is active */}
           <h2 className="category-title">
             {activeCategory === 'coffee' ? 'Coffee' : 'Bread & Pastry'}
           </h2>
-          <ProductGrid items={currentItems} onAddToCart={addToCart} />
+          {/* Show the products for the selected category */}
+          <ProductGrid items={activeCategory === 'coffee' ? coffeeItems : pastryItems} onAddToCart={addToCart} />
         </main>
-        <OrderList cart={cart} onEditItem={handleViewProduct} onRemoveItem={handleRemoveItem} />
+        {/* Show the list of items in the cart */}
+        <OrderList cart={cart} onEditItem={handleViewProduct} onRemoveItem={removeItem} />
       </div>
+      {/* Show the order summary (total, cancel, done) */}
       <OrderSummary 
         orderType={orderType} 
         totalPrice={getTotalPrice()} 
         totalItems={getTotalItems()} 
-        onCancel={handleCancel} 
-        onDone={handleDone}
+        onCancel={cancelOrder} 
+        onDone={cancelOrder}
       />
+      {/* Modal for editing coffee order */}
       <CoffeeModal 
         isOpen={isCoffeeModalOpen} 
         onClose={() => setIsCoffeeModalOpen(false)} 
         item={selectedItem} 
-        quantity={selectedQuantity} 
-        size={selectedSize}
-        onQuantityChange={setSelectedQuantity}
-        onSizeChange={setSelectedSize}
-        onAddOrder={handleAddCoffeeOrders}
+        quantities={selectedQuantities}
+        onAddOrder={addCoffeeOrder}
         onCancelOrder={() => {
           setIsCoffeeModalOpen(false);
         }}
       />
+      {/* Modal for editing bread order */}
       <BreadModal
         isOpen={isBreadModalOpen}
         onClose={() => setIsBreadModalOpen(false)}
         item={selectedItem}
         quantity={selectedQuantity}
         onQuantityChange={setSelectedQuantity}
-        onAddOrder={() => {
-          setCart(cart.map(cartItem =>
-            cartItem.id === selectedItem.id
-              ? { ...cartItem, quantity: selectedQuantity }
-              : cartItem
-          ));
-          setIsBreadModalOpen(false);
-        }}
+        onAddOrder={addBreadOrder}
         onCancelOrder={() => {
           setIsBreadModalOpen(false);
         }}

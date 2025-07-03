@@ -3,63 +3,33 @@ import { FiEye } from 'react-icons/fi';
 import { AiOutlineMinusCircle } from 'react-icons/ai';
 import RemoveItemModal from '../Modal/removeItemModal';
 import './CoffeeShop.css';
+import { handleRemoveClick, handleCancel, handleConfirm } from '../../handlers/modalHandlers';
+import { getCoffeeSummary, getPastrySummary, groupCartItems } from '../../utils/orderUtils';
 
-function groupCartItems(cart) {
-  // Group by name for coffee, aggregate sizes and quantities
-  const grouped = {};
-  cart.forEach(item => {
-    const key = item.name;
-    if (!grouped[key]) {
-      grouped[key] = { ...item, totalQty: 0, totalPrice: 0, sizes: {} };
-    }
-    grouped[key].totalQty += item.quantity;
-    grouped[key].totalPrice += item.price * item.quantity;
-    if (item.sizeLabel) {
-      grouped[key].sizes[item.sizeLabel] = (grouped[key].sizes[item.sizeLabel] || 0) + item.quantity;
-    }
-  });
-  return Object.values(grouped);
-}
-
-function getCoffeeSummary(item) {
-  const sizeEntries = Object.entries(item.sizes || {});
-  // Always show size, even if only one size is present
-  const sizeStr = sizeEntries.length > 0
-    ? sizeEntries.map(([size, qty]) => `${qty} ${size}`).join(', ')
-    : `${item.totalQty} cup${item.totalQty > 1 ? 's' : ''}`;
-  return `₱${item.totalPrice} — ${item.totalQty} cup${item.totalQty > 1 ? 's' : ''} (${sizeStr})`;
-}
-
-function getPastrySummary(item) {
-  return `₱${item.totalPrice} — ${item.totalQty} pcs`;
-}
-
+// This component shows the list of items in the user's order (cart)
 function OrderList({ cart, onEditItem, onRemoveItem }) {
+  // State for showing/hiding the remove item modal
   const [showRemove, setShowRemove] = useState(false);
+  // State for which item is selected to be removed
   const [itemToRemove, setItemToRemove] = useState(null);
+  // Group similar items in the cart for display
   const groupedCart = groupCartItems(cart);
 
-  const handleRemoveClick = (item) => {
-    setItemToRemove(item);
-    setShowRemove(true);
-  };
-  const handleCancel = () => {
-    setShowRemove(false);
-    setItemToRemove(null);
-  };
-  const handleConfirm = () => {
-    if (itemToRemove) onRemoveItem(itemToRemove);
-    setShowRemove(false);
-    setItemToRemove(null);
-  };
+  // Handler functions for remove item modal
+  const removeClick = handleRemoveClick(setItemToRemove, setShowRemove);
+  const cancelRemove = handleCancel(setShowRemove, setItemToRemove);
+  const confirmRemove = handleConfirm(itemToRemove, onRemoveItem, setShowRemove, setItemToRemove);
 
   return (
+    // Sidebar that displays the order list
     <aside className="order-list-viewport">
       <h2 className="order-list-title">Order List:</h2>
       <div className="order-list-content">
+        {/* If cart is empty, show a message */}
         {groupedCart.length === 0 ? (
           <div className="order-list-empty">No items in your order.</div>
         ) : (
+          // Otherwise, show the list of items
           <ul className="order-list-items">
             {groupedCart.map((item) => (
               <li key={item.id} className="order-list-item">
@@ -69,7 +39,8 @@ function OrderList({ cart, onEditItem, onRemoveItem }) {
                 <div className="order-list-item-info">
                   <span className="order-list-item-name">{item.name}</span>
                   <div className="order-list-item-details">
-                    {item.sizes && Object.keys(item.sizes).length > 0 ? (
+                    {/* Show summary depending on if it's coffee or pastry */}
+                    {item.quantities ? (
                       <span className="order-list-item-summary">{getCoffeeSummary(item)}</span>
                     ) : (
                       <span className="order-list-item-summary">{getPastrySummary(item)}</span>
@@ -77,10 +48,12 @@ function OrderList({ cart, onEditItem, onRemoveItem }) {
                   </div>
                 </div>
                 <div className="order-list-item-actions">
+                  {/* Button to view/edit the item */}
                   <button className="order-list-icon-btn" onClick={() => onEditItem(item)}>
                     <FiEye size={20} />
                   </button>
-                  <button className="order-list-icon-btn" onClick={() => handleRemoveClick(item)}>
+                  {/* Button to remove the item */}
+                  <button className="order-list-icon-btn" onClick={() => removeClick(item)}>
                     <AiOutlineMinusCircle size={22} />
                   </button>
                 </div>
@@ -89,7 +62,8 @@ function OrderList({ cart, onEditItem, onRemoveItem }) {
           </ul>
         )}
       </div>
-      <RemoveItemModal isOpen={showRemove} onClose={handleCancel} onConfirm={handleConfirm} />
+      {/* Modal for confirming item removal */}
+      <RemoveItemModal isOpen={showRemove} onClose={cancelRemove} onConfirm={confirmRemove} />
     </aside>
   );
 }
