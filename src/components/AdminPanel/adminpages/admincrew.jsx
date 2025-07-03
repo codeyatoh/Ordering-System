@@ -6,12 +6,14 @@ import CrewEditModal from '../adminmodal/crewEditModal';
 import { db } from '../../../firebase';
 import { collection, addDoc, getDocs, Timestamp, updateDoc, doc, runTransaction } from 'firebase/firestore';
 import DeleteCrewModal from './deletecrew.jsx';
+import EditCrewModal from './editcrew.jsx';
 
 function AdminCrew() {
   const [modalOpen, setModalOpen] = useState(false);
   const [crewList, setCrewList] = useState([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedCrew, setSelectedCrew] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   // Fetch crew list from Firestore
   useEffect(() => {
@@ -57,6 +59,19 @@ function AdminCrew() {
     const crewDataList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     setCrewList(crewDataList);
     setDeleteModalOpen(false);
+    setSelectedCrew(null);
+  };
+
+  // Edit crew in Firestore
+  const handleEditCrew = async (updatedData) => {
+    if (!selectedCrew) return;
+    const { id } = selectedCrew;
+    await updateDoc(doc(db, 'crew', id), updatedData);
+    // Refresh crew list
+    const querySnapshot = await getDocs(collection(db, 'crew'));
+    const crewDataList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setCrewList(crewDataList);
+    setEditModalOpen(false);
     setSelectedCrew(null);
   };
 
@@ -112,7 +127,7 @@ function AdminCrew() {
                     <td className="crew-status"><b>{crew.status}</b></td>
                     <td className="crew-created"><b>{crew.createdAt && crew.createdAt.toDate ? crew.createdAt.toDate().toLocaleDateString() : ''}</b></td>
                     <td className="crew-actions">
-                      <button className="crew-action-btn" disabled><FaEdit /></button>
+                      <button className="crew-action-btn" onClick={() => { setSelectedCrew(crew); setEditModalOpen(true); }}><FaEdit /></button>
                       <button className="crew-action-btn" onClick={() => { setSelectedCrew(crew); setDeleteModalOpen(true); }}><FaTrash /></button>
                     </td>
                   </tr>
@@ -122,6 +137,7 @@ function AdminCrew() {
           </table>
         </div>
         <CrewEditModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={handleAddCrew} />
+        <EditCrewModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} crew={selectedCrew} onSave={handleEditCrew} />
         <DeleteCrewModal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} onConfirm={handleArchiveCrew} crew={selectedCrew} />
       </main>
     </div>
