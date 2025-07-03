@@ -7,6 +7,7 @@ import Admindashboard from '../AdminPanel/adminpages/admindashboard';
 import AdminCrew from '../AdminPanel/adminpages/admincrew';
 import AdminMenu from '../AdminPanel/adminpages/adminmenu';
 import AdminOrder from '../AdminPanel/adminpages/Order/adminorder';
+import AdminPayment from '../AdminPanel/adminpages/Order/adminpayment';
 import { UserContext } from '../../context/UserContext';
 
 function ProtectedRoute({ children }) {
@@ -41,6 +42,11 @@ function AppRoutes() {
       <Route path="/admin/orders" element={
         <ProtectedRoute>
           <AdminOrder />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/payments" element={
+        <ProtectedRoute>
+          <AdminPayment />
         </ProtectedRoute>
       } />
     </Routes>

@@ -16,7 +16,7 @@ function AdminSidebar() {
         <button className={`adminpanel-nav-btn${location.pathname === '/admin/crew' ? ' active' : ''}`} onClick={() => navigate('/admin/crew')}><FaUsers className="adminpanel-nav-icon" /> Crew</button>
         <button className={`adminpanel-nav-btn${location.pathname === '/admin/menu' ? ' active' : ''}`} onClick={() => navigate('/admin/menu')}><FaUtensils className="adminpanel-nav-icon" /> Menu</button>
         <button className={`adminpanel-nav-btn${location.pathname === '/admin/orders' ? ' active' : ''}`} onClick={() => navigate('/admin/orders')}><FaClipboardList className="adminpanel-nav-icon" /> Orders</button>
-        <button className="adminpanel-nav-btn"><FaMoneyCheckAlt className="adminpanel-nav-icon" /> Payments</button>
+        <button className={`adminpanel-nav-btn${location.pathname === '/admin/payments' ? ' active' : ''}`} onClick={() => navigate('/admin/payments')}><FaMoneyCheckAlt className="adminpanel-nav-icon" /> Payments</button>
         <button className="adminpanel-nav-btn logout"><FaSignOutAlt className="adminpanel-nav-icon" /> Logout</button>
       </nav>
     </aside>
