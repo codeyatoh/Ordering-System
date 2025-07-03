@@ -10,17 +10,19 @@ import EditCrewModal from './editcrew.jsx';
 import SearchAndFilter from './search.jsx';
 
 function AdminCrew() {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [crewList, setCrewList] = useState([]);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedCrew, setSelectedCrew] = useState(null);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('All');
+  // State for modals and crew data
+  const [modalOpen, setModalOpen] = useState(false); // Add crew modal
+  const [crewList, setCrewList] = useState([]); // All crew from Firestore
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false); // Delete (archive) modal
+  const [selectedCrew, setSelectedCrew] = useState(null); // Crew selected for edit/delete
+  const [editModalOpen, setEditModalOpen] = useState(false); // Edit crew modal
+  const [searchTerm, setSearchTerm] = useState(''); // Search input value
+  const [filterStatus, setFilterStatus] = useState('All'); // Status filter value
 
-  // Fetch crew list from Firestore
+  // Fetch crew list from Firestore on mount
   useEffect(() => {
     const fetchCrew = async () => {
+      // Get all crew documents from Firestore
       const querySnapshot = await getDocs(collection(db, 'crew'));
       const crewData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setCrewList(crewData);
@@ -29,21 +31,22 @@ function AdminCrew() {
   }, []);
 
   // Add new crew to Firestore with unique, non-reusable crew_id
+  // 1. Atomically increment the crew_id counter in Firestore
+  // 2. Add the new crew with the next crew_id
+  // 3. Refresh the crew list
   const handleAddCrew = async (crewData) => {
     const createdAt = Timestamp.now();
-    // Use Firestore transaction to increment and fetch the next crew_id
     let newCrewId;
     await runTransaction(db, async (transaction) => {
       const counterRef = doc(db, 'counters', 'crew_id');
       const counterSnap = await transaction.get(counterRef);
       let lastId = 0;
       if (counterSnap.exists()) {
-        lastId = counterSnap.data().last_id || 0; 
+        lastId = counterSnap.data().last_id || 0;
       }
       newCrewId = lastId + 1;
       transaction.set(counterRef, { last_id: newCrewId }, { merge: true });
     });
-    // Add crew with crew_id
     await addDoc(collection(db, 'crew'), { ...crewData, createdAt, crew_id: newCrewId });
     // Refresh crew list
     const querySnapshot = await getDocs(collection(db, 'crew'));
@@ -52,7 +55,9 @@ function AdminCrew() {
     setModalOpen(false);
   };
 
-  // Archive crew (set status to Archived)
+  // Archive crew (set status to Archived, but do not delete from DB)
+  // 1. Update the selected crew's status to 'Archived' in Firestore
+  // 2. Refresh the crew list
   const handleArchiveCrew = async () => {
     if (!selectedCrew) return;
     const { id } = selectedCrew;
@@ -66,6 +71,8 @@ function AdminCrew() {
   };
 
   // Edit crew in Firestore
+  // 1. Update the selected crew's fields in Firestore
+  // 2. Refresh the crew list
   const handleEditCrew = async (updatedData) => {
     if (!selectedCrew) return;
     const { id } = selectedCrew;
@@ -78,12 +85,14 @@ function AdminCrew() {
     setSelectedCrew(null);
   };
 
-  // Only show Active and Inactive crew (never show Archived)
+  // Filtering and searching logic:
+  // 1. Only show Active and Inactive crew (never show Archived)
+  // 2. Apply status filter if not 'All'
+  // 3. Apply search filter on name, email, or crew_id
   let visibleCrew = crewList.filter(crew => crew.status === 'Active' || crew.status === 'Inactive');
   if (filterStatus !== 'All') {
     visibleCrew = visibleCrew.filter(crew => crew.status === filterStatus);
   }
-  // Search filter
   if (searchTerm.trim() !== '') {
     const term = searchTerm.trim().toLowerCase();
     visibleCrew = visibleCrew.filter(crew =>
@@ -96,6 +105,7 @@ function AdminCrew() {
   // Sort by crew_id ascending
   visibleCrew.sort((a, b) => (a.crew_id || 0) - (b.crew_id || 0));
 
+  // Render the Admin Crew Management UI
   return (
     <div className="adminpanel-root">
       <AdminSidebar />
@@ -104,7 +114,9 @@ function AdminCrew() {
           <h2 className="crew-title">Crew Management</h2>
         </div>
         <div className="crew-actions-row">
+          {/* Add Crew button opens the add modal */}
           <button className="crew-add-btn" onClick={() => setModalOpen(true)}>Add</button>
+          {/* Search and filter bar */}
           <SearchAndFilter
             searchTerm={searchTerm}
             onSearch={setSearchTerm}
@@ -140,7 +152,9 @@ function AdminCrew() {
                     <td className="crew-status"><b>{crew.status}</b></td>
                     <td className="crew-created"><b>{crew.createdAt && crew.createdAt.toDate ? crew.createdAt.toDate().toLocaleDateString() : ''}</b></td>
                     <td className="crew-actions">
+                      {/* Edit button opens the edit modal for this crew */}
                       <button className="crew-action-btn" onClick={() => { setSelectedCrew(crew); setEditModalOpen(true); }}><FaEdit /></button>
+                      {/* Delete button opens the archive modal for this crew */}
                       <button className="crew-action-btn" onClick={() => { setSelectedCrew(crew); setDeleteModalOpen(true); }}><FaTrash /></button>
                     </td>
                   </tr>
@@ -149,8 +163,11 @@ function AdminCrew() {
             </tbody>
           </table>
         </div>
+        {/* Add Crew Modal */}
         <CrewEditModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={handleAddCrew} />
+        {/* Edit Crew Modal */}
         <EditCrewModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} crew={selectedCrew} onSave={handleEditCrew} />
+        {/* Archive Crew Modal */}
         <DeleteCrewModal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} onConfirm={handleArchiveCrew} crew={selectedCrew} />
       </main>
     </div>
