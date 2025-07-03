@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { FiEye } from 'react-icons/fi';
+import { FiEye, FiTrash2 } from 'react-icons/fi';
 import { AiOutlineMinusCircle } from 'react-icons/ai';
-import RemoveItemModal from '../Modal/removeItemModal';
 import './CoffeeShop.css';
 import { handleRemoveClick, handleCancel, handleConfirm } from '../../handlers/modalHandlers';
 import { getCoffeeSummary, getPastrySummary, groupCartItems } from '../../utils/orderUtils';
+import { toast } from 'react-toastify';
 
 // This component shows the list of items in the user's order (cart)
-function OrderList({ cart, onEditItem, onRemoveItem }) {
+function OrderList({ cart, onEditItem, onRemoveItem, customerPayment, setCustomerPayment }) {
   // State for showing/hiding the remove item modal
   const [showRemove, setShowRemove] = useState(false);
   // State for which item is selected to be removed
@@ -19,6 +19,11 @@ function OrderList({ cart, onEditItem, onRemoveItem }) {
   const removeClick = handleRemoveClick(setItemToRemove, setShowRemove);
   const cancelRemove = handleCancel(setShowRemove, setItemToRemove);
   const confirmRemove = handleConfirm(itemToRemove, onRemoveItem, setShowRemove, setItemToRemove);
+
+  const handleRemove = (item) => {
+    onRemoveItem(item);
+    toast.info(`${item.name} removed from cart.`);
+  };
 
   return (
     // Sidebar that displays the order list
@@ -52,9 +57,9 @@ function OrderList({ cart, onEditItem, onRemoveItem }) {
                   <button className="order-list-icon-btn" onClick={() => onEditItem(item)}>
                     <FiEye size={20} />
                   </button>
-                  {/* Button to remove the item */}
-                  <button className="order-list-icon-btn" onClick={() => removeClick(item)}>
-                    <AiOutlineMinusCircle size={22} />
+                  {/* Button to remove the item (now trash bin icon) */}
+                  <button className="order-list-icon-btn" onClick={() => handleRemove(item)}>
+                    <FiTrash2 size={20} />
                   </button>
                 </div>
               </li>
@@ -62,8 +67,22 @@ function OrderList({ cart, onEditItem, onRemoveItem }) {
           </ul>
         )}
       </div>
-      {/* Modal for confirming item removal */}
-      <RemoveItemModal isOpen={showRemove} onClose={cancelRemove} onConfirm={confirmRemove} />
+      {/* Footer for customer payment */}
+      <div className="order-list-footer">
+        <label htmlFor="customer-payment" className="order-list-footer-label">Customer Payment:</label>
+        <div className="order-list-footer-input-wrapper">
+          <span className="order-list-footer-peso">₱</span>
+          <input
+            id="customer-payment"
+            className="order-list-footer-input"
+            type="number"
+            min="0"
+            placeholder="Enter Amount"
+            value={customerPayment}
+            onChange={e => setCustomerPayment(e.target.value)}
+          />
+        </div>
+      </div>
     </aside>
   );
 }

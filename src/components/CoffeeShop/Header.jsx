@@ -3,6 +3,7 @@ import { TbLogout } from 'react-icons/tb';
 import logo from '../../assets/images/logo.png';
 import LogoutModal from '../Modal/LogoutModal';
 import { handleLogoutOpen, handleLogoutClose, handleLogoutConfirm } from '../../handlers/modalHandlers';
+import { toast } from 'react-toastify';
 
 function Header() {
   // State to show or hide the logout modal
@@ -13,6 +14,7 @@ function Header() {
   const closeLogout = handleLogoutClose(setShowLogout);
   const confirmLogout = handleLogoutConfirm(setShowLogout, () => {
     // This is where you add the real logout logic (like redirecting or clearing session)
+    toast.success('Logged out successfully!');
     console.log('User logged out');
   });
 

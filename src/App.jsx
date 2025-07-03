@@ -1,13 +1,18 @@
+import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import AppRoutes from './components/routes/AppRoutes';
-
-
+import { ToastContainer } from 'react-toastify';
+import './toastify-custom.css';
+import { UserProvider } from './context/UserContext';
 
 function App() {
   return (
-    <Router>
-      <AppRoutes />
-    </Router>
+    <UserProvider>
+      <ToastContainer position="top-right" autoClose={2000} />
+      <Router>
+        <AppRoutes />
+      </Router>
+    </UserProvider>
   );
 }
 

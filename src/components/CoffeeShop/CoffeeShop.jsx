@@ -8,7 +8,9 @@ import OrderSummary from './OrderSummary';
 import CoffeeModal from '../Modal/coffeeModal';
 import BreadModal from '../Modal/breadModal';
 import OrderList from './OrderList';
+import Receipt from './receipt';
 import './CoffeeShop.css';
+import { toast } from 'react-toastify';
 import { handleCancel, handleRemoveItem, handleAddCoffeeOrder, handleAddBreadOrder, handleAddToCart } from '../../handlers/cartHandlers';
 
 function CoffeeShop() {
@@ -29,6 +31,13 @@ function CoffeeShop() {
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('regular');
   const [selectedQuantities, setSelectedQuantities] = useState({ regular: 1, medium: 0, large: 0 });
+  // Add state for showing order confirmation and order number
+  const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
+  const [orderNumber, setOrderNumber] = useState(null);
+  // Add state for customer payment amount
+  const [customerPayment, setCustomerPayment] = useState('');
+  // Add state for showing receipt
+  const [showReceipt, setShowReceipt] = useState(false);
 
   // List of coffee products
   const coffeeItems = [
@@ -51,7 +60,10 @@ function CoffeeShop() {
   ];
 
   // Set up handler functions for cart actions (imported from handlers)
-  const cancelOrder = handleCancel(setCart);
+  const cancelOrder = () => {
+    setCart([]);
+    toast.info('Order cancelled.');
+  };
   const removeItem = handleRemoveItem(cart, setCart);
   const addCoffeeOrder = handleAddCoffeeOrder(cart, setCart, coffeeItems, setIsCoffeeModalOpen);
   const addBreadOrder = handleAddBreadOrder(cart, setCart, selectedItem, selectedQuantity, setIsBreadModalOpen);
@@ -79,11 +91,71 @@ function CoffeeShop() {
     return cart.reduce((total, item) => total + (item.quantity || 0) + (item.quantities ? Object.values(item.quantities).reduce((sum, qty) => sum + qty, 0) : 0), 0);
   };
 
+  // Generate a new order number (simple increment or random for demo)
+  const generateOrderNumber = () => {
+    // For demo: random 4-digit number, in real app use backend or persistent counter
+    return String(Math.floor(1 + Math.random() * 9999)).padStart(4, '0');
+  };
+
+  // Handler for when checkout is done
+  const handleOrderDone = () => {
+    if (cart.length === 0) {
+      toast.error('Please add at least one product to the order list.');
+      return;
+    }
+    if (!customerPayment || Number(customerPayment) <= 0) {
+      toast.error('Please enter customer payment before completing the order.');
+      return;
+    }
+    setOrderNumber(generateOrderNumber());
+    setShowReceipt(true);
+    toast.success('Order completed successfully!');
+    // Do not clear cart yet, needed for receipt
+  };
+
+  // Handler to start a new order
+  const handleStartNewOrder = () => {
+    setShowReceipt(false);
+    setOrderNumber(null);
+    setCart([]);
+    setCustomerPayment('');
+  };
+
+  // Format items for receipt
+  const getReceiptItems = () => {
+    return cart.map(item => {
+      if (item.quantities) {
+        // Coffee with sizes
+        const sizeSummary = Object.entries(item.quantities)
+          .filter(([size, qty]) => qty > 0)
+          .map(([size, qty]) => `${qty} ${size.charAt(0).toUpperCase() + size.slice(1)}`)
+          .join(', ');
+        return {
+          quantity: Object.values(item.quantities).reduce((a, b) => a + b, 0),
+          name: `${item.name} (${sizeSummary})`,
+          price: Object.entries(item.quantities).reduce((sum, [size, qty]) => sum + ((item.price + (size === 'medium' ? 10 : size === 'large' ? 20 : 0)) * qty), 0)
+        };
+      } else {
+        // Bread/pastry
+        return {
+          quantity: item.quantity,
+          name: item.name,
+          price: item.price * item.quantity
+        };
+      }
+    });
+  };
+
+  // Get today's date and time
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB');
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
   // Render the CoffeeShop page
   return (
     <div className="coffee-shop">
-      {/* Top header bar */}
-      <Header />
+      {/* Top header bar - hide when showing receipt */}
+      {!showReceipt && <Header />}
       <div className="main-content">
         {/* Sidebar for switching categories */}
         <Sidebar activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
@@ -95,17 +167,33 @@ function CoffeeShop() {
           {/* Show the products for the selected category */}
           <ProductGrid items={activeCategory === 'coffee' ? coffeeItems : pastryItems} onAddToCart={addToCart} />
         </main>
-        {/* Show the list of items in the cart */}
-        <OrderList cart={cart} onEditItem={handleViewProduct} onRemoveItem={removeItem} />
+        <OrderList cart={cart} onEditItem={handleViewProduct} onRemoveItem={removeItem} customerPayment={customerPayment} setCustomerPayment={setCustomerPayment} />
       </div>
-      {/* Show the order summary (total, cancel, done) */}
-      <OrderSummary 
-        orderType={orderType} 
-        totalPrice={getTotalPrice()} 
-        totalItems={getTotalItems()} 
-        onCancel={cancelOrder} 
-        onDone={cancelOrder}
-      />
+      {/* Show receipt after checkout */}
+      {showReceipt && (
+        <Receipt
+          orderNumber={orderNumber}
+          date={dateStr}
+          time={timeStr}
+          items={getReceiptItems()}
+          total={getTotalPrice()}
+          cash={customerPayment}
+          change={customerPayment - getTotalPrice()}
+          onStartNewOrder={handleStartNewOrder}
+          onPrint={() => window.print()}
+        />
+      )}
+      {/* Show the order summary (total, cancel, done) only if not showing receipt */}
+      {!showReceipt && (
+        <OrderSummary 
+          orderType={orderType} 
+          totalPrice={getTotalPrice()} 
+          totalItems={getTotalItems()} 
+          onCancel={cancelOrder} 
+          onDone={handleOrderDone}
+          customerPayment={customerPayment}
+        />
+      )}
       {/* Modal for editing coffee order */}
       <CoffeeModal 
         isOpen={isCoffeeModalOpen} 

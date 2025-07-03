@@ -10,7 +10,7 @@ function ConfirmModal({ isOpen, onClose, onConfirm }) {
         <div className={styles['logout-modal-content']}>
           <div className={styles['logout-title-box']}>Confirm Order</div>
           <p className={styles['logout-modal-message']}>
-            You are about to proceed to checkout.
+            You are about to complete the order.
           </p>
           <div className={styles['logout-modal-footer']}>
             <button className={styles['logout-modal-cancel-btn']} onClick={onClose}>Cancel</button>
