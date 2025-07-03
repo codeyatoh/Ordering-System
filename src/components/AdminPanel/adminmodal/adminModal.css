@@ -124,6 +124,46 @@
   color: #22332B;
 }
 
+.admin-modal-input[type="file"] {
+  background: #DCD7C9;
+  color: #22332B;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.admin-modal-input[type="file"]::-webkit-file-upload-button {
+  background: #B4845C;
+  color: #DCD7C9;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.admin-modal-input[type="file"]::-webkit-file-upload-button:hover {
+  background: #8d6847;
+}
+.admin-modal-input[type="file"]::file-selector-button {
+  background: #B4845C;
+  color: #DCD7C9;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.admin-modal-input[type="file"]::file-selector-button:hover {
+  background: #8d6847;
+}
+
 @media (max-width: 700px) {
   .admin-modal {
     padding: 18px 4vw 18px 4vw;

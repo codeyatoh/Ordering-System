@@ -3,9 +3,13 @@ import AdminSidebar from '../admin.sidebar';
 import './admincrew.css';
 import { FaSearch, FaFilter, FaEdit, FaTrash } from 'react-icons/fa';
 import CrewEditModal from '../adminmodal/crewEditModal';
+import CrewAddModal from '../adminmodal/crewAddModal';
+import RemoveCrewModal from '../adminmodal/removeCrewModal';
 
 function AdminCrew() {
-  const [modalOpen, setModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [removeModalOpen, setRemoveModalOpen] = useState(false);
   return (
     <div className="adminpanel-root">
       <AdminSidebar />
@@ -14,7 +18,7 @@ function AdminCrew() {
           <h2 className="crew-title">Crew Management</h2>
         </div>
         <div className="crew-actions-row">
-          <button className="crew-add-btn" onClick={() => setModalOpen(true)}>Add</button>
+          <button className="crew-add-btn" onClick={() => setAddModalOpen(true)}>Add</button>
           <div className="crew-search-container">
             <div className="crew-search-input-wrapper">
               <FaSearch className="crew-search-icon" />
@@ -49,14 +53,16 @@ function AdminCrew() {
                 <td className="crew-status"><b>Active</b></td>
                 <td className="crew-created"><b>03-07-2025</b></td>
                 <td className="crew-actions">
-                  <button className="crew-action-btn"><FaEdit /></button>
-                  <button className="crew-action-btn"><FaTrash /></button>
+                  <button className="crew-action-btn" onClick={() => setEditModalOpen(true)}><FaEdit /></button>
+                  <button className="crew-action-btn" onClick={() => setRemoveModalOpen(true)}><FaTrash /></button>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <CrewEditModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+        <CrewEditModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} />
+        <CrewAddModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} />
+        <RemoveCrewModal isOpen={removeModalOpen} onClose={() => setRemoveModalOpen(false)} onConfirm={() => setRemoveModalOpen(false)} />
       </main>
     </div>
   );
