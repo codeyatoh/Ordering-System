@@ -7,6 +7,7 @@ import { db } from '../../../firebase';
 import { collection, addDoc, getDocs, Timestamp, updateDoc, doc, runTransaction } from 'firebase/firestore';
 import DeleteCrewModal from './deletecrew.jsx';
 import EditCrewModal from './editcrew.jsx';
+import SearchAndFilter from './search.jsx';
 
 function AdminCrew() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -14,6 +15,8 @@ function AdminCrew() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedCrew, setSelectedCrew] = useState(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('All');
 
   // Fetch crew list from Firestore
   useEffect(() => {
@@ -35,7 +38,7 @@ function AdminCrew() {
       const counterSnap = await transaction.get(counterRef);
       let lastId = 0;
       if (counterSnap.exists()) {
-        lastId = counterSnap.data().last_id || 0;
+        lastId = counterSnap.data().last_id || 0; 
       }
       newCrewId = lastId + 1;
       transaction.set(counterRef, { last_id: newCrewId }, { merge: true });
@@ -75,8 +78,21 @@ function AdminCrew() {
     setSelectedCrew(null);
   };
 
-  // Only show non-archived crew
-  const visibleCrew = crewList.filter(crew => crew.status !== 'Archived');
+  // Only show Active and Inactive crew (never show Archived)
+  let visibleCrew = crewList.filter(crew => crew.status === 'Active' || crew.status === 'Inactive');
+  if (filterStatus !== 'All') {
+    visibleCrew = visibleCrew.filter(crew => crew.status === filterStatus);
+  }
+  // Search filter
+  if (searchTerm.trim() !== '') {
+    const term = searchTerm.trim().toLowerCase();
+    visibleCrew = visibleCrew.filter(crew =>
+      (crew.firstName && crew.firstName.toLowerCase().includes(term)) ||
+      (crew.lastName && crew.lastName.toLowerCase().includes(term)) ||
+      (crew.email && crew.email.toLowerCase().includes(term)) ||
+      (crew.crew_id && String(crew.crew_id).padStart(4, '0').includes(term))
+    );
+  }
   // Sort by crew_id ascending
   visibleCrew.sort((a, b) => (a.crew_id || 0) - (b.crew_id || 0));
 
@@ -89,15 +105,12 @@ function AdminCrew() {
         </div>
         <div className="crew-actions-row">
           <button className="crew-add-btn" onClick={() => setModalOpen(true)}>Add</button>
-          <div className="crew-search-container">
-            <div className="crew-search-input-wrapper">
-              <FaSearch className="crew-search-icon" />
-              <input className="crew-search-input" type="text" placeholder="Search by Order ID or Payment ID" />
-            </div>
-            <button className="crew-search-filter-btn">
-              <FaFilter />
-            </button>
-          </div>
+          <SearchAndFilter
+            searchTerm={searchTerm}
+            onSearch={setSearchTerm}
+            filterStatus={filterStatus}
+            onFilter={setFilterStatus}
+          />
         </div>
         <div className="crew-table-container">
           <table className="crew-table">

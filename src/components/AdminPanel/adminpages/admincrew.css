@@ -48,14 +48,16 @@
 .crew-search-container {
   display: flex;
   align-items: center;
+  gap: 10px;
   margin-left: auto;
-  gap: 8px;
 }
+
 .crew-search-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
+
 .crew-search-icon {
   position: absolute;
   left: 12px;
@@ -63,25 +65,49 @@
   font-size: 1.1rem;
   pointer-events: none;
 }
+
 .crew-search-input {
   padding: 8px 16px 8px 36px;
   border: 1.5px solid #2C3930;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 1rem;
   width: 260px;
   background: #fff;
   color: #2C3930;
+  transition: border-color 0.2s;
+  outline: none;
 }
-.crew-search-filter-btn {
-  margin-left: 8px;
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  cursor: pointer;
-  color: #2C3930;
+.crew-search-input:focus {
+  border-color: #A27B5C;
+}
+
+.crew-search-filter-wrapper {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 4px;
+}
+
+.crew-search-filter-select {
+  padding: 8px 24px 8px 8px;
+  border: 1.5px solid #2C3930;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+  color: #2C3930;
+  height: 40px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.crew-search-filter-select:focus {
+  border-color: #A27B5C;
+}
+
+.crew-search-filter-icon {
+  font-size: 1.4rem;
+  color: #2C3930;
+  margin-left: 2px;
+  margin-right: 2px;
+  vertical-align: middle;
 }
 
 .crew-table-container {
@@ -158,6 +184,10 @@
     width: 120px;
     font-size: 0.9rem;
     padding-left: 32px;
+  }
+  .crew-search-filter-select {
+    font-size: 0.9rem;
+    height: 36px;
   }
   .crew-table th, .crew-table td {
     font-size: 0.9rem;
