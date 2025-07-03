@@ -5,6 +5,7 @@ import DiningLocation from '../DiningLocation/dininglocation'
 import CoffeeShop from '../CoffeeShop/CoffeeShop'
 import Admindashboard from '../AdminPanel/adminpages/admindashboard';
 import AdminCrew from '../AdminPanel/adminpages/admincrew';
+import AdminMenu from '../AdminPanel/adminpages/adminmenu';
 import { UserContext } from '../../context/UserContext';
 
 function ProtectedRoute({ children }) {
@@ -29,6 +30,11 @@ function AppRoutes() {
       <Route path="/admin/crew" element={
         <ProtectedRoute>
           <AdminCrew />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin/menu" element={
+        <ProtectedRoute>
+          <AdminMenu />
         </ProtectedRoute>
       } />
     </Routes>
