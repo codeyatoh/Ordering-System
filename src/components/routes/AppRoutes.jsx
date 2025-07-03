@@ -12,7 +12,7 @@ import { UserContext } from '../../context/UserContext';
 
 function ProtectedRoute({ children }) {
   const { user } = useContext(UserContext);
-  if (!user || user.role !== 'admin') {
+  if (!user) {
     return <Navigate to="/" replace />;
   }
   return children;

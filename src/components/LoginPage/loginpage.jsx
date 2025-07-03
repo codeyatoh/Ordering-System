@@ -1,34 +1,43 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AiOutlineEye, AiOutlineMail, AiOutlineLock } from 'react-icons/ai';
 import styles from './LoginPage.module.css';
 import { toast } from 'react-toastify';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../firebase';
 import { UserContext } from '../../context/UserContext';
-// import { handleLogin } from '../../handlers/authHandlers';
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { setUser } = useContext(UserContext);
+  const [loading, setLoading] = useState(false);
+  const { user } = useContext(UserContext);
 
-  // Login handler with role-based redirect
-  const login = (e) => {
+  // Redirect to /admin after successful login, but only if not already there
+  useEffect(() => {
+    if (user && location.pathname !== '/admin') {
+      navigate('/admin');
+    }
+  }, [user, navigate, location.pathname]);
+
+  // Login handler with Firebase Auth
+  const login = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       toast.error('Please enter both email and password.');
       return;
     }
-    if (email === 'admin@example.com' && password === 'admin123') {
-      setUser({ role: 'admin' });
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       toast.success('Login successful!');
-      setTimeout(() => navigate('/admin'), 1200);
-    } else if (email === 'crew@example.com' && password === 'crew123') {
-      setUser({ role: 'crew' });
-      toast.success('Login successful!');
-      setTimeout(() => navigate('/dining-location'), 1200);
-    } else {
+      // No redirect here; handled by useEffect
+    } catch (error) {
       toast.error('Invalid email or password.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -67,8 +76,8 @@ function LoginPage() {
               </button>
             </div>
           </div>
-          <button className={styles.submitButton} onClick={login}>
-            Sign In
+          <button className={styles.submitButton} onClick={login} disabled={loading}>
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </div>
       </div>
