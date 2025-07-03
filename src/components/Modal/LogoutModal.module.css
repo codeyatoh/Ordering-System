@@ -101,4 +101,16 @@
 
 .logout-modal-logout-btn:hover {
   background: #eae3d6;
+}
+
+.logout-title-box {
+  display: inline-block;
+  background-color: #DCD7C9;
+  color: #2C3930;
+  padding: 8px 24px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 1.3rem;
+  margin-bottom: 18px;
+  text-align: center;
 } 

@@ -4,8 +4,8 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import ProductGrid from './ProductGrid';
 import OrderSummary from './OrderSummary';
-import CoffeeModal from '../ModalOrder/coffeeModal';
-import BreadModal from '../ModalOrder/breadModal';
+import CoffeeModal from '../Modal/coffeeModal';
+import BreadModal from '../Modal/breadModal';
 import OrderList from './OrderList';
 import './CoffeeShop.css';
 
@@ -40,15 +40,20 @@ function CoffeeShop() {
   ];
 
   const addToCart = (item) => {
-    const existingItem = cart.find(cartItem => cartItem.id === item.id);
+    // If coffee (id 1-6), add sizeLabel: 'Regular' if not present
+    const isCoffee = item.id >= 1 && item.id <= 6;
+    const itemWithSize = isCoffee && !item.sizeLabel
+      ? { ...item, sizeLabel: 'Regular' }
+      : item;
+    const existingItem = cart.find(cartItem => cartItem.id === item.id && (!isCoffee || cartItem.sizeLabel === (itemWithSize.sizeLabel || 'Regular')));
     if (existingItem) {
       setCart(cart.map(cartItem => 
-        cartItem.id === item.id 
+        cartItem.id === item.id && (!isCoffee || cartItem.sizeLabel === (itemWithSize.sizeLabel || 'Regular'))
           ? { ...cartItem, quantity: cartItem.quantity + 1 }
           : cartItem
       ));
     } else {
-      setCart([...cart, { ...item, quantity: 1 }]);
+      setCart([...cart, { ...itemWithSize, quantity: 1 }]);
     }
   };
 

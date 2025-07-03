@@ -9,14 +9,13 @@ function LogoutModal({ isOpen, onClose, onLogout }) {
     <div className={styles['modal-overlay']}>
       <div className={styles['modal-box']}>
         <div className={styles['logout-modal-content']}>
-          <img src={logo} alt="Logo" className={styles['logout-modal-logo']} />
-          <h2 className={styles['logout-modal-title']}>Logout Confirmation</h2>
+          <div className={styles['logout-title-box']}>Logout</div>
           <p className={styles['logout-modal-message']}>
-            Are you sure you want to logout?
+            You are going to log out your account.<br />Are you sure?
           </p>
           <div className={styles['logout-modal-footer']}>
             <button className={styles['logout-modal-cancel-btn']} onClick={onClose}>Cancel</button>
-            <button className={styles['logout-modal-logout-btn']} onClick={onLogout}>Logout</button>
+            <button className={styles['logout-modal-logout-btn']} onClick={onLogout}>Log out</button>
           </div>
         </div>
       </div>

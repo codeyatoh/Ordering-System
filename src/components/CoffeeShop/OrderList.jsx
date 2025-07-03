@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FiEye } from 'react-icons/fi';
 import { AiOutlineMinusCircle } from 'react-icons/ai';
+import RemoveItemModal from '../Modal/removeItemModal';
 import './CoffeeShop.css';
 
 function groupCartItems(cart) {
@@ -34,7 +35,24 @@ function getPastrySummary(item) {
 }
 
 function OrderList({ cart, onEditItem, onRemoveItem }) {
+  const [showRemove, setShowRemove] = useState(false);
+  const [itemToRemove, setItemToRemove] = useState(null);
   const groupedCart = groupCartItems(cart);
+
+  const handleRemoveClick = (item) => {
+    setItemToRemove(item);
+    setShowRemove(true);
+  };
+  const handleCancel = () => {
+    setShowRemove(false);
+    setItemToRemove(null);
+  };
+  const handleConfirm = () => {
+    if (itemToRemove) onRemoveItem(itemToRemove);
+    setShowRemove(false);
+    setItemToRemove(null);
+  };
+
   return (
     <aside className="order-list-viewport">
       <h2 className="order-list-title">Order List:</h2>
@@ -62,7 +80,7 @@ function OrderList({ cart, onEditItem, onRemoveItem }) {
                   <button className="order-list-icon-btn" onClick={() => onEditItem(item)}>
                     <FiEye size={20} />
                   </button>
-                  <button className="order-list-icon-btn" onClick={() => onRemoveItem(item)}>
+                  <button className="order-list-icon-btn" onClick={() => handleRemoveClick(item)}>
                     <AiOutlineMinusCircle size={22} />
                   </button>
                 </div>
@@ -71,6 +89,7 @@ function OrderList({ cart, onEditItem, onRemoveItem }) {
           </ul>
         )}
       </div>
+      <RemoveItemModal isOpen={showRemove} onClose={handleCancel} onConfirm={handleConfirm} />
     </aside>
   );
 }

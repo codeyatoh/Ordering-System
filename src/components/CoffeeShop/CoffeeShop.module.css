@@ -543,14 +543,24 @@
   font-weight: 600;
 }
 
-.instructions-box {
-  display: inline-block;
-  background-color: #233026;
+.instructionsBox {
+  background: #233022;
   color: #fff;
-  padding: 4px 16px;
-  border-radius: 4px;
   font-weight: bold;
-  margin-bottom: 4px;
+  padding: 2px 16px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 6px;
   font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+.instructionsText {
+  margin-top: 4px;
+  color: #233022;
+  font-size: 0.98rem;
   text-align: center;
+  max-width: 350px;
+  margin-left: auto;
+  margin-right: auto;
 } 

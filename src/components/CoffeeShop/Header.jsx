@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TbLogout } from 'react-icons/tb';
 import logo from '../../assets/images/logo.png';
-import LogoutModal from '../ModalOrder/LogoutModal';
+import LogoutModal from '../Modal/LogoutModal';
 
 function Header() {
   const [showLogout, setShowLogout] = useState(false);
@@ -25,8 +25,8 @@ function Header() {
       <div className="header-flex">
         <img src={logo} alt="Logo" className="header-logo" />
         <div className="header-center">
-          <p>Quality Coffee & Fresh Pastries</p>
-          <div className="header-guide">Select a category, add items to your order, and review your list on the right.</div>
+          <div className="instructions-box">Instructions:</div>
+          <div className="header-guide">Select a category,<br />add items to your order, and review your list on the right</div>
         </div>
         <button className="logout-icon-btn" onClick={handleLogout}>
           <TbLogout className="logout-icon" />

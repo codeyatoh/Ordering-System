@@ -1,6 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
+import ConfirmModal from '../Modal/confirmModal';
 
 function OrderSummary({ orderType, totalPrice, totalItems, onCancel, onDone }) {
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleProceed = () => setShowConfirm(true);
+  const handleCancel = () => setShowConfirm(false);
+  const handleConfirm = () => {
+    setShowConfirm(false);
+    onDone();
+  };
+
   return (
     <div className="order-summary">
       <div className="order-info">
@@ -11,8 +21,9 @@ function OrderSummary({ orderType, totalPrice, totalItems, onCancel, onDone }) {
       </div>
       <div className="order-actions">
         <button className="cancel-btn" onClick={onCancel}>Cancel Order</button>
-        <button className="done-btn" onClick={onDone}>Done</button>
+        <button className="done-btn" onClick={handleProceed}>Proceed to checkout</button>
       </div>
+      <ConfirmModal isOpen={showConfirm} onClose={handleCancel} onConfirm={handleConfirm} />
     </div>
   );
 }
