@@ -42,33 +42,33 @@ function Receipt({
               <span className="receipt-time">{time}</span>
             </span>
           </div>
-          <div className="receipt-table-head">
-            <span className="receipt-th">Quantity</span>
+          <div className="receipt-table-head" style={{ display: 'grid', gridTemplateColumns: '60px 1.5fr 80px', alignItems: 'center', gap: '16px', marginBottom: 10 }}>
+            <span className="receipt-th" style={{ paddingRight: 8 }}>Qty</span>
             <span className="receipt-th">Product</span>
-            <span className="receipt-th">Price</span>
+            <span className="receipt-th" style={{ textAlign: 'right' }}>Price</span>
           </div>
           {items.map((item, idx) => (
-            <div className="receipt-table-row" key={idx}>
-              <span className="receipt-td">{item.quantity}x</span>
-              <span className="receipt-td">{item.name}</span>
-              <span className="receipt-td">₱{item.price}</span>
+            <div className="receipt-table-row" key={idx} style={{ display: 'grid', gridTemplateColumns: '60px 1.5fr 80px', alignItems: 'flex-start', gap: '16px', marginBottom: 10 }}>
+              <span className="receipt-td" style={{ paddingRight: 8 }}>{item.quantity}x</span>
+              <span className="receipt-td" style={{ wordBreak: 'break-word', whiteSpace: 'normal', paddingRight: 8 }}>{item.name}</span>
+              <span className="receipt-td" style={{ textAlign: 'right', fontWeight: 500, whiteSpace: 'nowrap' }}>₱{Number(item.price).toFixed(2)}</span>
             </div>
           ))}
           <div className="receipt-dotted" />
-          <div className="receipt-table-row">
+          <div className="receipt-table-row" style={{ display: 'grid', gridTemplateColumns: '60px 1fr 80px', alignItems: 'center', gap: '8px', margin: '10px 0 0 0' }}>
             <span className="receipt-td-bold">Total Amount:</span>
             <span className="receipt-td"></span>
-            <span className="receipt-td-bold">₱{total}</span>
+            <span className="receipt-td-bold" style={{ textAlign: 'right' }}>₱{Number(total).toFixed(2)}</span>
           </div>
-          <div className="receipt-table-row">
+          <div className="receipt-table-row" style={{ display: 'grid', gridTemplateColumns: '60px 1fr 80px', alignItems: 'center', gap: '8px', margin: '4px 0' }}>
             <span className="receipt-td-bold">Cash:</span>
             <span className="receipt-td"></span>
-            <span className="receipt-td-bold">₱{cash}</span>
+            <span className="receipt-td-bold" style={{ textAlign: 'right' }}>₱{Number(cash).toFixed(2)}</span>
           </div>
-          <div className="receipt-table-row">
+          <div className="receipt-table-row" style={{ display: 'grid', gridTemplateColumns: '60px 1fr 80px', alignItems: 'center', gap: '8px', margin: '4px 0 10px 0' }}>
             <span className="receipt-td-bold">Change:</span>
             <span className="receipt-td"></span>
-            <span className="receipt-td-bold">₱{change}</span>
+            <span className="receipt-td-bold" style={{ textAlign: 'right' }}>₱{Number(change).toFixed(2)}</span>
           </div>
           <div className="receipt-dotted" />
           <div className="receipt-queue">The Queue Number: <span className="receipt-queue-num">#{orderNumber}</span></div>
@@ -80,28 +80,30 @@ function Receipt({
       </div>
       <button className="receipt-neworder-btn" onClick={onStartNewOrder}>Start New Order</button>
       {/* Hidden printable receipt template, now off-screen and without logo */}
-      <div id="print-receipt" style={{ position: 'absolute', left: '-9999px', top: 0, width: '350px', background: '#fff', color: '#222' }}>
-        <div className="print-receipt-box">
-          <div className="print-title">AJH Bread & Beans</div>
-          <div className="print-row"><span>Date:</span><span>{date}</span></div>
-          <div className="print-row"><span>Time:</span><span>{time}</span></div>
-          <hr className="print-hr" />
-          <div className="print-row" style={{ fontWeight: 'bold' }}>
-            <span>Qty</span><span>Product</span><span>Price</span>
+      <div id="print-receipt" style={{ position: 'absolute', left: '-9999px', top: 0, width: '350px', background: '#fff', color: '#222', fontFamily: 'Poppins, sans-serif', padding: 0, margin: 0 }}>
+        <div className="print-receipt-box" style={{ border: '2px solid #222', borderRadius: 8, padding: 18, maxWidth: 320, margin: '0 auto' }}>
+          <div className="print-title" style={{ fontSize: '1.4rem', fontWeight: 'bold', textAlign: 'center', marginBottom: 12 }}>AJH Bread & Beans</div>
+          <div className="print-row" style={{ marginBottom: 6 }}><span>Date:</span><span>{date}</span></div>
+          <div className="print-row" style={{ marginBottom: 12 }}><span>Time:</span><span>{time}</span></div>
+          <hr className="print-hr" style={{ border: 'none', borderTop: '1.5px dashed #222', margin: '10px 0' }} />
+          <div className="print-row" style={{ fontWeight: 'bold', fontSize: '1.05rem', marginBottom: 8, display: 'flex', gap: 8 }}>
+            <span style={{ width: 40 }}>Qty</span><span style={{ flex: 1, textAlign: 'left' }}>Product</span><span style={{ width: 70, textAlign: 'right' }}>Price</span>
           </div>
           {items.map((item, idx) => (
-            <div className="print-row" key={idx}>
-              <span>{item.quantity}x</span>
-              <span style={{ maxWidth: 120, display: 'inline-block', wordBreak: 'break-word' }}>{item.name}</span>
-              <span>₱{item.price}</span>
+            <div className="print-row" key={idx} style={{ fontSize: '1rem', marginBottom: 8, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <span style={{ width: 40, paddingTop: 2 }}>{item.quantity}x</span>
+              <span style={{ flex: 1, textAlign: 'left', maxWidth: 120, display: 'block', wordBreak: 'break-word', whiteSpace: 'normal', paddingRight: 8 }}>{item.name}</span>
+              <span style={{ width: 70, textAlign: 'right', fontWeight: 500, alignSelf: 'flex-start', whiteSpace: 'nowrap', marginTop: 0 }}>{`₱${Number(item.price).toFixed(2)}`}</span>
             </div>
           ))}
-          <hr className="print-hr" />
-          <div className="print-row"><span>Total:</span><span></span><span>₱{total}</span></div>
-          <div className="print-row"><span>Cash:</span><span></span><span>₱{cash}</span></div>
-          <div className="print-row"><span>Change:</span><span></span><span>₱{change}</span></div>
-          <hr className="print-hr" />
-          <div className="print-queue">Queue #: <b>#{orderNumber}</b></div>
+          <hr className="print-hr" style={{ border: 'none', borderTop: '1.5px dashed #222', margin: '10px 0' }} />
+          <div className="print-row" style={{ fontWeight: 'bold', fontSize: '1.05rem', marginBottom: 4, display: 'flex', gap: 8 }}><span>Total:</span><span style={{ flex: 1 }}></span><span style={{ textAlign: 'right', width: 70 }}>₱{Number(total).toFixed(2)}</span></div>
+          <div className="print-row" style={{ marginBottom: 2, display: 'flex', gap: 8 }}><span>Cash:</span><span style={{ flex: 1 }}></span><span style={{ textAlign: 'right', width: 70 }}>₱{Number(cash).toFixed(2)}</span></div>
+          <div className="print-row" style={{ marginBottom: 2, display: 'flex', gap: 8 }}><span>Change:</span><span style={{ flex: 1 }}></span><span style={{ textAlign: 'right', width: 70 }}>₱{Number(change).toFixed(2)}</span></div>
+          <hr className="print-hr" style={{ border: 'none', borderTop: '1.5px dashed #222', margin: '10px 0' }} />
+          <div className="print-queue" style={{ fontWeight: 'bold', fontSize: '1.2rem', textAlign: 'center', marginTop: 12 }}>
+            Queue #: <b style={{ fontSize: '1.3rem', color: '#2DFB7B' }}>#{orderNumber}</b>
+          </div>
         </div>
       </div>
     </div>

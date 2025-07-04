@@ -38,11 +38,18 @@ export const handleAddCoffeeOrder = (cart, setCart, coffeeItems, setIsCoffeeModa
 
 // Handles adding or updating a bread order in the cart
 export const handleAddBreadOrder = (cart, setCart, selectedItem, selectedQuantity, setIsBreadModalOpen) => () => {
-  setCart(cart.map(cartItem =>
-    cartItem.id === selectedItem.id
-      ? { ...cartItem, quantity: selectedQuantity }
-      : cartItem
-  ));
+  setCart(prevCart => {
+    const idx = prevCart.findIndex(item => item.id === selectedItem.id);
+    if (idx !== -1) {
+      // Update existing bread item
+      const updated = [...prevCart];
+      updated[idx] = { ...updated[idx], quantity: selectedQuantity };
+      return updated;
+    } else {
+      // Add new bread item
+      return [...prevCart, { ...selectedItem, quantity: selectedQuantity }];
+    }
+  });
   setIsBreadModalOpen(false);
 };
 

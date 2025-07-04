@@ -37,7 +37,7 @@ function MenuAddModal({ isOpen, onClose, onAdd }) {
       await onAdd({
         name,
         price,
-        category,
+        category: category.toLowerCase(),
         availability,
         imageUrl,
       });

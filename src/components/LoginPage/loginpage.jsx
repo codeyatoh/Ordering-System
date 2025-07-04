@@ -21,8 +21,8 @@ function LoginPage() {
   useEffect(() => {
     if (user && userType === 'admin' && location.pathname !== '/admin') {
       navigate('/admin');
-    } else if (crew && userType === 'crew' && location.pathname !== '/') {
-      navigate('/');
+    } else if (crew && userType === 'crew' && location.pathname !== '/dining-location') {
+      navigate('/dining-location');
     }
   }, [user, crew, userType, navigate, location.pathname]);
 

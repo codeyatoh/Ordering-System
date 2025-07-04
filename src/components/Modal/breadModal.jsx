@@ -15,7 +15,7 @@ function BreadModal({ isOpen, onClose, item, quantity, onQuantityChange, onAddOr
       <div className={styles['modal-box']}>
         <div className={styles['modal-header']}>
           <div className={styles['coffee-modal-header-content']}>
-            <img src={item.image} alt={item.name} className={styles['coffee-modal-img']} />
+            <img src={item.Imageurl || item.image} alt={item.name} className={styles['coffee-modal-img']} />
             <div className={styles['coffee-modal-info']}>
               <div className={styles['coffee-modal-title']}>{item.name}</div>
               <div className={styles['coffee-modal-price']}>

@@ -39,7 +39,7 @@ function OrderList({ cart, onEditItem, onRemoveItem, customerPayment, setCustome
             {groupedCart.map((item) => (
               <li key={item.id} className="order-list-item">
                 <div className="order-list-item-imgbox">
-                  <img src={item.image} alt={item.name} className="order-list-item-img" />
+                  <img src={item.Imageurl || item.image} alt={item.name} className="order-list-item-img" />
                 </div>
                 <div className="order-list-item-info">
                   <span className="order-list-item-name">{item.name}</span>
