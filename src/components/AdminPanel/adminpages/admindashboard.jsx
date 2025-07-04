@@ -12,6 +12,7 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
+import { FaRegCalendarAlt, FaRegClock } from 'react-icons/fa';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -36,6 +37,12 @@ const mockSalesData = {
 function Admindashboard() {
   const [filter, setFilter] = useState('day');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const salesData = mockSalesData[filter];
 
@@ -212,16 +219,21 @@ function Admindashboard() {
     <div className="adminpanel-root">
       <AdminSidebar />
       <main className="adminpanel-main" style={{ background: '#fafbfc' }}>
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: 16, alignItems: 'center' }}>
           <button onClick={() => setFilter('day')} className={filter === 'day' ? 'active' : ''} style={{ fontSize: 13, padding: '4px 14px', borderRadius: 6, border: '1px solid #eee', background: filter === 'day' ? '#f5f5f5' : '#fff', color: '#222' }}>Today</button>
           <button onClick={() => setFilter('week')} className={filter === 'week' ? 'active' : ''} style={{ fontSize: 13, padding: '4px 14px', borderRadius: 6, border: '1px solid #eee', background: filter === 'week' ? '#f5f5f5' : '#fff', color: '#222' }}>This Week</button>
           <button onClick={() => setFilter('month')} className={filter === 'month' ? 'active' : ''} style={{ fontSize: 13, padding: '4px 14px', borderRadius: 6, border: '1px solid #eee', background: filter === 'month' ? '#f5f5f5' : '#fff', color: '#222' }}>This Month</button>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={e => setSelectedDate(e.target.value)}
-            style={{ marginLeft: 'auto', fontSize: 13, border: '1px solid #eee', borderRadius: 6, padding: '3px 8px', background: '#fff', color: '#222' }}
-          />
+          {/* Date and Time Display */}
+          <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', gap: 16 }}>
+            <span style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: '8px 16px', fontSize: 18, fontWeight: 500, color: '#222' }}>
+              <FaRegCalendarAlt style={{ marginRight: 8, fontSize: 20 }} />
+              {new Date(selectedDate).toLocaleDateString('en-GB')}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: '8px 16px', fontSize: 18, fontWeight: 500, color: '#222' }}>
+              <FaRegClock style={{ marginRight: 8, fontSize: 20 }} />
+              {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: '1rem', marginBottom: 18 }}>
           <div style={{ flex: 1, background: '#fff', borderRadius: 6, padding: 10, boxShadow: 'none', border: '1px solid #f2f2f2', minWidth: 0 }}>
@@ -254,40 +266,7 @@ function Admindashboard() {
           </div>
         </div>
         {/* Top Products Today and Pie Chart in one row below chart */}
-        <div style={{ display: 'flex', marginTop: 24, gap: 16 }}>
-          {/* Top Products - left half */}
-          <div style={{ flex: '0 0 50%', maxWidth: '50%', background: '#fff', borderRadius: 6, padding: 16, border: '1px solid #f2f2f2' }}>
-            <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 15, marginBottom: 18, color: '#222' }}>
-              Top Products Today (Best Seller)
-            </div>
-            <div>
-              {topProducts.map((prod, idx) => (
-                <div key={prod.name} style={{ display: 'flex', alignItems: 'center', marginBottom: idx !== topProducts.length - 1 ? 18 : 0, paddingBottom: 12, borderBottom: idx !== topProducts.length - 1 ? '1px solid #f4f4f4' : 'none' }}>
-                  <img src={prod.image} alt={prod.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', marginRight: 16, border: '1.5px solid #eee' }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 500, fontSize: 14, color: '#222' }}>{prod.name}</div>
-                    <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>Sold: <b style={{ color: '#222' }}>{prod.sold}</b></div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ background: '#f5f5f5', borderRadius: 16, padding: '4px 14px', minWidth: 70, textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#222', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontWeight: 700 }}>{prod.satisfaction}%</span>
-                      <span style={{ fontSize: 11, color: '#888', fontWeight: 400 }}>Satisfaction</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Pie Chart - right half */}
-          <div style={{ flex: '0 0 50%', maxWidth: '50%', background: '#fff', borderRadius: 6, padding: 16, border: '1px solid #f2f2f2', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 320 }}>
-            <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 15, marginBottom: 18, color: '#222' }}>
-              Top Product in Revenue
-            </div>
-            <div style={{ width: '100%', height: 220 }}>
-              <Pie data={pieData} options={pieOptions} />
-            </div>
-          </div>
-        </div>
+        {/* Removed Top Products and Pie Chart section as requested */}
       </main>
     </div>
   );
