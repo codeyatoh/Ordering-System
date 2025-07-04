@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { AiOutlineEye, AiOutlineMail, AiOutlineLock } from 'react-icons/ai';
+import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineMail, AiOutlineLock } from 'react-icons/ai';
 import styles from './LoginPage.module.css';
 import { toast } from 'react-toastify';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -14,8 +14,8 @@ function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const { user, crew, setCrewMember, userType } = useContext(UserContext);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirect based on user type
   useEffect(() => {
@@ -97,18 +97,19 @@ function LoginPage() {
             <div className={styles.passwordInputContainer}>
               <AiOutlineLock className={styles.inputIcon} />
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 className={styles.inputField}
                 placeholder="Enter your password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
-              <button 
-                className={styles.passwordToggle} 
+              <button
+                className={styles.passwordToggle}
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                <AiOutlineEye />
+                {showPassword ? <AiOutlineEyeInvisible size="1.7em" /> : <AiOutlineEye size="1.7em" />}
               </button>
             </div>
           </div>
