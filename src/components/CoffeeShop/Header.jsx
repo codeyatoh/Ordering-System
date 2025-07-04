@@ -4,18 +4,20 @@ import logo from '../../assets/images/logo.png';
 import LogoutModal from '../Modal/LogoutModal';
 import { handleLogoutOpen, handleLogoutClose, handleLogoutConfirm } from '../../handlers/modalHandlers';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 function Header() {
   // State to show or hide the logout modal
   const [showLogout, setShowLogout] = useState(false);
+  const navigate = useNavigate();
 
   // Handler functions for opening, closing, and confirming logout
   const openLogout = handleLogoutOpen(setShowLogout);
   const closeLogout = handleLogoutClose(setShowLogout);
   const confirmLogout = handleLogoutConfirm(setShowLogout, () => {
-    // This is where you add the real logout logic (like redirecting or clearing session)
     toast.success('Logged out successfully!');
     console.log('User logged out');
+    navigate('/');
   });
 
   return (
