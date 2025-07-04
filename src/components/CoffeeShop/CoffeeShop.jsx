@@ -144,7 +144,7 @@ function CoffeeShop() {
         crew_id: crew?.crew_id || '',
         total_items: getTotalItems(),
         total_price: getTotalPrice(),
-        order_status: 'Pending',
+        order_status: 'Complete',
         created_at: serverTimestamp(),
         items: cart.map(item => ({
           ...item,

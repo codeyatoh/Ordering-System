@@ -3,7 +3,7 @@ import AdminSidebar from '../../admin.sidebar';
 import '../../adminpanel.css';
 import './adminorder.css';
 import { db } from '../../../../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { FaSearch, FaFilter, FaEye } from 'react-icons/fa';
 
 function AdminOrder() {
@@ -11,12 +11,11 @@ function AdminOrder() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      const querySnapshot = await getDocs(collection(db, 'orders'));
+    const unsubscribe = onSnapshot(collection(db, 'orders'), (querySnapshot) => {
       const orderData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setOrders(orderData);
-    };
-    fetchOrders();
+    });
+    return () => unsubscribe();
   }, []);
 
   // Filtered orders by search (Order ID or Payment ID)
@@ -76,7 +75,7 @@ function AdminOrder() {
                     <td>{order.crew_id ? String(order.crew_id).padStart(4, '0') : ''}</td>
                     <td>{order.total_items || 0}</td>
                     <td>₱{order.total_price || 0}</td>
-                    <td>{order.status || ''}</td>
+                    <td>{order.order_status || ''}</td>
                     <td>{order.created_at ? new Date(order.created_at.seconds * 1000).toLocaleString() : ''}</td>
                     <td><button className="order-action-btn"><FaEye /></button></td>
                   </tr>
