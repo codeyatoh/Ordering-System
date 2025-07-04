@@ -10,9 +10,17 @@ import AdminOrder from '../AdminPanel/adminpages/Order/adminorder';
 import AdminPayment from '../AdminPanel/adminpages/Order/adminpayment';
 import { UserContext } from '../../context/UserContext';
 
-function ProtectedRoute({ children }) {
-  const { user } = useContext(UserContext);
-  if (!user) {
+function AdminProtectedRoute({ children }) {
+  const { user, userType } = useContext(UserContext);
+  if (!user || userType !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
+
+function CrewProtectedRoute({ children }) {
+  const { crew, userType } = useContext(UserContext);
+  if (!crew || userType !== 'crew') {
     return <Navigate to="/" replace />;
   }
   return children;
@@ -22,32 +30,36 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<LoginPage />} />
-      <Route path="/dining-location" element={<DiningLocation />} />
+      <Route path="/dining-location" element={
+        <CrewProtectedRoute>
+          <DiningLocation />
+        </CrewProtectedRoute>
+      } />
       <Route path="/coffee-shop" element={<CoffeeShop />} />
       <Route path="/admin" element={
-        <ProtectedRoute>
+        <AdminProtectedRoute>
           <Admindashboard />
-        </ProtectedRoute>
+        </AdminProtectedRoute>
       } />
       <Route path="/admin/crew" element={
-        <ProtectedRoute>
+        <AdminProtectedRoute>
           <AdminCrew />
-        </ProtectedRoute>
+        </AdminProtectedRoute>
       } />
       <Route path="/admin/menu" element={
-        <ProtectedRoute>
+        <AdminProtectedRoute>
           <AdminMenu />
-        </ProtectedRoute>
+        </AdminProtectedRoute>
       } />
       <Route path="/admin/orders" element={
-        <ProtectedRoute>
+        <AdminProtectedRoute>
           <AdminOrder />
-        </ProtectedRoute>
+        </AdminProtectedRoute>
       } />
       <Route path="/admin/payments" element={
-        <ProtectedRoute>
+        <AdminProtectedRoute>
           <AdminPayment />
-        </ProtectedRoute>
+        </AdminProtectedRoute>
       } />
     </Routes>
   );
