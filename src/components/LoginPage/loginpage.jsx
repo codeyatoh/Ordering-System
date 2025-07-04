@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { AiOutlineEye, AiOutlineMail, AiOutlineLock } from 'react-icons/ai';
+import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineMail, AiOutlineLock } from 'react-icons/ai';
 import styles from './LoginPage.module.css';
 import { toast } from 'react-toastify';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -14,6 +14,7 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { user } = useContext(UserContext);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirect to /admin after successful login, but only if not already there
   useEffect(() => {
@@ -65,14 +66,19 @@ function LoginPage() {
             <div className={styles.passwordInputContainer}>
               <AiOutlineLock className={styles.inputIcon} />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 className={styles.inputField}
                 placeholder="Enter your password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
-              <button className={styles.passwordToggle} type="button">
-                <AiOutlineEye />
+              <button
+                className={styles.passwordToggle}
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <AiOutlineEyeInvisible size="1.5em" /> : <AiOutlineEye size="1.5em" />}
               </button>
             </div>
           </div>

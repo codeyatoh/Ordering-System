@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AdminSidebar from '../admin.sidebar';
 import '../adminpanel.css';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,9 +10,10 @@ import {
   Title,
   Tooltip,
   Legend,
+  ArcElement,
 } from 'chart.js';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const mockSalesData = {
   day: {
@@ -153,6 +154,60 @@ function Admindashboard() {
     },
   ];
 
+  // Mock top products revenue data for Pie chart
+  const topProductsRevenue = [
+    { name: 'Caramel Macchiato', revenue: 120000 },
+    { name: 'Classic Latte', revenue: 95000 },
+    { name: 'Iced Americano', revenue: 80000 },
+    { name: 'Mocha Frappe', revenue: 70000 },
+    { name: 'Spanish Latte', revenue: 65000 },
+  ];
+
+  const pieData = {
+    labels: topProductsRevenue.map(p => p.name),
+    datasets: [
+      {
+        data: topProductsRevenue.map(p => p.revenue),
+        backgroundColor: [
+          '#FF9800',
+          '#4CAF50',
+          '#2196F3',
+          '#9C27B0',
+          '#F44336',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const pieOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          font: { size: 12 },
+          color: '#222',
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.label || '';
+            const value = context.parsed || 0;
+            return `${label}: ₱${value.toLocaleString()}`;
+          },
+        },
+        backgroundColor: '#fff',
+        titleColor: '#222',
+        bodyColor: '#222',
+        borderColor: '#eee',
+        borderWidth: 1,
+      },
+    },
+    maintainAspectRatio: false,
+  };
+
   return (
     <div className="adminpanel-root">
       <AdminSidebar />
@@ -185,7 +240,8 @@ function Admindashboard() {
             <div style={{ color: '#4caf50', fontSize: 11, fontWeight: 400 }}>▲ +5%</div>
           </div>
         </div>
-        <div style={{ background: '#fff', borderRadius: 6, padding: 12, border: '1px solid #f2f2f2', boxShadow: 'none', minHeight: 0, marginBottom: 0 }}>
+        {/* Order / Sales Bar Chart - full width */}
+        <div style={{ background: '#fff', borderRadius: 6, padding: 12, border: '1px solid #f2f2f2', boxShadow: 'none', minHeight: 0, marginBottom: 0, marginTop: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontWeight: 500, fontSize: 14, color: '#222' }}>Order / Sales</span>
             <div style={{ marginLeft: 18, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -197,27 +253,39 @@ function Admindashboard() {
             <Bar data={data} options={options} />
           </div>
         </div>
-        {/* Top Products Today Section */}
-        <div style={{ background: '#fff', borderRadius: 6, padding: 16, border: '1px solid #f2f2f2', marginTop: 24 }}>
-          <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 15, marginBottom: 18, color: '#222' }}>
-            Top Products Today (Best Seller)
-          </div>
-          <div>
-            {topProducts.map((prod, idx) => (
-              <div key={prod.name} style={{ display: 'flex', alignItems: 'center', marginBottom: idx !== topProducts.length - 1 ? 18 : 0, paddingBottom: 12, borderBottom: idx !== topProducts.length - 1 ? '1px solid #f4f4f4' : 'none' }}>
-                <img src={prod.image} alt={prod.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', marginRight: 16, border: '1.5px solid #eee' }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 500, fontSize: 14, color: '#222' }}>{prod.name}</div>
-                  <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>Sold: <b style={{ color: '#222' }}>{prod.sold}</b></div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ background: '#f5f5f5', borderRadius: 16, padding: '4px 14px', minWidth: 70, textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#222', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontWeight: 700 }}>{prod.satisfaction}%</span>
-                    <span style={{ fontSize: 11, color: '#888', fontWeight: 400 }}>Satisfaction</span>
+        {/* Top Products Today and Pie Chart in one row below chart */}
+        <div style={{ display: 'flex', marginTop: 24, gap: 16 }}>
+          {/* Top Products - left half */}
+          <div style={{ flex: '0 0 50%', maxWidth: '50%', background: '#fff', borderRadius: 6, padding: 16, border: '1px solid #f2f2f2' }}>
+            <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 15, marginBottom: 18, color: '#222' }}>
+              Top Products Today (Best Seller)
+            </div>
+            <div>
+              {topProducts.map((prod, idx) => (
+                <div key={prod.name} style={{ display: 'flex', alignItems: 'center', marginBottom: idx !== topProducts.length - 1 ? 18 : 0, paddingBottom: 12, borderBottom: idx !== topProducts.length - 1 ? '1px solid #f4f4f4' : 'none' }}>
+                  <img src={prod.image} alt={prod.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', marginRight: 16, border: '1.5px solid #eee' }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 500, fontSize: 14, color: '#222' }}>{prod.name}</div>
+                    <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>Sold: <b style={{ color: '#222' }}>{prod.sold}</b></div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ background: '#f5f5f5', borderRadius: 16, padding: '4px 14px', minWidth: 70, textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#222', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontWeight: 700 }}>{prod.satisfaction}%</span>
+                      <span style={{ fontSize: 11, color: '#888', fontWeight: 400 }}>Satisfaction</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+          {/* Pie Chart - right half */}
+          <div style={{ flex: '0 0 50%', maxWidth: '50%', background: '#fff', borderRadius: 6, padding: 16, border: '1px solid #f2f2f2', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 320 }}>
+            <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 15, marginBottom: 18, color: '#222' }}>
+              Top Product in Revenue
+            </div>
+            <div style={{ width: '100%', height: 220 }}>
+              <Pie data={pieData} options={pieOptions} />
+            </div>
           </div>
         </div>
       </main>
