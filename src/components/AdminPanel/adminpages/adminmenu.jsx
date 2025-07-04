@@ -4,15 +4,17 @@ import './admincrew.css';
 import { FaSearch, FaFilter, FaEdit, FaTrash } from 'react-icons/fa';
 import MenuAddModal from '../adminmodal/menuAddModal';
 import MenuEditModal from '../adminmodal/menuEditModal';
-import MenuRemoveModal from '../adminmodal/menuRemoveModal';
+import EditMenu from './editmenu';
+import DeleteMenu from './deletemune';
 import { db } from '../../../firebase';
-import { collection, getDocs, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, doc, serverTimestamp, deleteDoc } from 'firebase/firestore';
 
 function AdminMenu() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
   const [menuItems, setMenuItems] = useState([]);
+  const [selectedMenuItem, setSelectedMenuItem] = useState(null);
 
   // Fetch menu items from Firestore
   useEffect(() => {
@@ -65,14 +67,29 @@ function AdminMenu() {
     setMenuItems(menuList);
   };
 
-  // Update menu item in Firestore (to be used in edit modal)
-  const handleUpdateMenu = async (id, menuData) => {
-    await updateMenuItem(id, menuData);
+  // Edit menu item handler
+  const handleEditMenu = async (updatedData) => {
+    if (!selectedMenuItem) return;
+    await updateMenuItem(selectedMenuItem.id, updatedData);
     // Refresh menu list
     const menuCol = collection(db, 'menu');
     const menuSnapshot = await getDocs(menuCol);
     const menuList = menuSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     setMenuItems(menuList);
+    setSelectedMenuItem(null);
+    setEditModalOpen(false);
+  };
+
+  // Delete menu item handler
+  const handleDeleteMenu = async (id) => {
+    await deleteDoc(doc(db, 'menu', id));
+    // Refresh menu list
+    const menuCol = collection(db, 'menu');
+    const menuSnapshot = await getDocs(menuCol);
+    const menuList = menuSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setMenuItems(menuList);
+    setSelectedMenuItem(null);
+    setRemoveModalOpen(false);
   };
 
   return (
@@ -125,8 +142,8 @@ function AdminMenu() {
                   <td className="crew-created">{item.created_at && item.created_at.toDate ? item.created_at.toDate().toLocaleString() : ''}</td>
                   <td className="crew-created">{item.updated_at && item.updated_at.toDate ? item.updated_at.toDate().toLocaleString() : ''}</td>
                   <td className="crew-actions">
-                    <button className="crew-action-btn" onClick={() => setEditModalOpen(true)}><FaEdit /></button>
-                    <button className="crew-action-btn" onClick={() => setRemoveModalOpen(true)}><FaTrash /></button>
+                    <button className="crew-action-btn" onClick={() => { setSelectedMenuItem(item); setEditModalOpen(true); }}><FaEdit /></button>
+                    <button className="crew-action-btn" onClick={() => { setSelectedMenuItem(item); setRemoveModalOpen(true); }}><FaTrash /></button>
                   </td>
                 </tr>
               ))}
@@ -134,8 +151,9 @@ function AdminMenu() {
           </table>
         </div>
         <MenuAddModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} onAdd={handleAddMenu} />
-        <MenuEditModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} />
-        <MenuRemoveModal isOpen={removeModalOpen} onClose={() => setRemoveModalOpen(false)} onConfirm={() => setRemoveModalOpen(false)} />
+        <MenuEditModal isOpen={editModalOpen} onClose={() => { setEditModalOpen(false); setSelectedMenuItem(null); }} onEdit={handleEditMenu} menuItem={selectedMenuItem} />
+        <EditMenu isOpen={editModalOpen} onClose={() => { setEditModalOpen(false); setSelectedMenuItem(null); }} onEdit={handleEditMenu} menuItem={selectedMenuItem} />
+        <DeleteMenu isOpen={removeModalOpen} onClose={() => { setRemoveModalOpen(false); setSelectedMenuItem(null); }} onDelete={handleDeleteMenu} menuItem={selectedMenuItem} />
       </main>
     </div>
   );
