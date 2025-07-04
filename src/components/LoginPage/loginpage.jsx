@@ -4,8 +4,9 @@ import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineMail, AiOutlineLock } fro
 import styles from './LoginPage.module.css';
 import { toast } from 'react-toastify';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { auth, db } from '../../firebase';
 import { UserContext } from '../../context/UserContext';
+import { authenticateCrew, isValidEmail, isValidPassword } from '../../utils/authUtils';
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -14,28 +15,57 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { user } = useContext(UserContext);
-  const [showPassword, setShowPassword] = useState(false);
 
-  // Redirect to /admin after successful login, but only if not already there
+  // Redirect based on user type
   useEffect(() => {
-    if (user && location.pathname !== '/admin') {
+    if (user && userType === 'admin' && location.pathname !== '/admin') {
       navigate('/admin');
+    } else if (crew && userType === 'crew' && location.pathname !== '/dining-location') {
+      navigate('/dining-location');
     }
-  }, [user, navigate, location.pathname]);
+  }, [user, crew, userType, navigate, location.pathname]);
 
-  // Login handler with Firebase Auth
+  // Login handler
   const login = async (e) => {
     e.preventDefault();
+    
+    // Validate inputs
     if (!email || !password) {
       toast.error('Please enter both email and password.');
       return;
     }
+
+    if (!isValidEmail(email)) {
+      toast.error('Please enter a valid email address.');
+      return;
+    }
+
+    if (!isValidPassword(password)) {
+      toast.error('Password must be at least 6 characters long.');
+      return;
+    }
+
     setLoading(true);
+    
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      toast.success('Login successful!');
-      // No redirect here; handled by useEffect
+      // First try admin login (Firebase Auth)
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        toast.success('Admin login successful!');
+        // Admin redirect handled by useEffect
+      } catch (authError) {
+        // If admin login fails, try crew login
+        const crewData = await authenticateCrew(email, password);
+        if (crewData) {
+          setCrewMember(crewData);
+          toast.success('Crew login successful!');
+          // Crew redirect handled by useEffect
+        } else {
+          throw new Error('Invalid credentials');
+        }
+      }
     } catch (error) {
+      console.error('Login error:', error);
       toast.error('Invalid email or password.');
     } finally {
       setLoading(false);
@@ -66,19 +96,14 @@ function LoginPage() {
             <div className={styles.passwordInputContainer}>
               <AiOutlineLock className={styles.inputIcon} />
               <input
-                type={showPassword ? "text" : "password"}
+                type="password"
                 className={styles.inputField}
                 placeholder="Enter your password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
-              <button
-                className={styles.passwordToggle}
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? <AiOutlineEyeInvisible size="1.5em" /> : <AiOutlineEye size="1.5em" />}
+              <button className={styles.passwordToggle} type="button">
+                <AiOutlineEye />
               </button>
             </div>
           </div>
