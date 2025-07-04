@@ -14,7 +14,8 @@ function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { user } = useContext(UserContext);
+  const { user, crew, setCrewMember, userType } = useContext(UserContext);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirect based on user type
   useEffect(() => {
@@ -96,14 +97,19 @@ function LoginPage() {
             <div className={styles.passwordInputContainer}>
               <AiOutlineLock className={styles.inputIcon} />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 className={styles.inputField}
                 placeholder="Enter your password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
-              <button className={styles.passwordToggle} type="button">
-                <AiOutlineEye />
+              <button
+                className={styles.passwordToggle}
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <AiOutlineEyeInvisible size="1.7em" /> : <AiOutlineEye size="1.7em" />}
               </button>
             </div>
           </div>
