@@ -1,22 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { TbLogout } from 'react-icons/tb';
 import logo from '../../assets/images/logo.png';
 import LogoutModal from '../Modal/LogoutModal';
 import { handleLogoutOpen, handleLogoutClose, handleLogoutConfirm } from '../../handlers/modalHandlers';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../../context/UserContext';
 
 function Header() {
   // State to show or hide the logout modal
   const [showLogout, setShowLogout] = useState(false);
   const navigate = useNavigate();
+  const { logoutCrew, userType } = useContext(UserContext);
 
   // Handler functions for opening, closing, and confirming logout
   const openLogout = handleLogoutOpen(setShowLogout);
   const closeLogout = handleLogoutClose(setShowLogout);
   const confirmLogout = handleLogoutConfirm(setShowLogout, () => {
+    // Properly logout based on user type
+    if (userType === 'crew' && logoutCrew) {
+      logoutCrew();
+    }
     toast.success('Logged out successfully!');
-    console.log('User logged out');
     navigate('/');
   });
 
