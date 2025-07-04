@@ -1,15 +1,80 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../admin.sidebar';
 import './admincrew.css';
 import { FaSearch, FaFilter, FaEdit, FaTrash } from 'react-icons/fa';
 import MenuAddModal from '../adminmodal/menuAddModal';
 import MenuEditModal from '../adminmodal/menuEditModal';
 import MenuRemoveModal from '../adminmodal/menuRemoveModal';
+import { db } from '../../../firebase';
+import { collection, getDocs, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 
 function AdminMenu() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
+  const [menuItems, setMenuItems] = useState([]);
+
+  // Fetch menu items from Firestore
+  useEffect(() => {
+    const fetchMenu = async () => {
+      const menuCol = collection(db, 'menu');
+      const menuSnapshot = await getDocs(menuCol);
+      const menuList = menuSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setMenuItems(menuList);
+    };
+    fetchMenu();
+  }, []);
+
+  // Utility function to add a menu item
+  const addMenuItem = async ({ name, price, category, availability, imageUrl }) => {
+    const menuCol = collection(db, 'menu');
+    const docRef = await addDoc(menuCol, {
+      Product_id: '', // will update after creation
+      name,
+      price: Number(price),
+      category,
+      availability: availability === 'Active' || availability === true,
+      Imageurl: imageUrl,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    });
+    // Set Product_id to the Firestore doc id
+    await updateDoc(doc(db, 'menu', docRef.id), { Product_id: docRef.id });
+  };
+
+  // Utility function to update a menu item
+  const updateMenuItem = async (id, { name, price, category, availability, imageUrl }) => {
+    const menuDoc = doc(db, 'menu', id);
+    await updateDoc(menuDoc, {
+      name,
+      price: Number(price),
+      category,
+      availability: availability === 'Active' || availability === true,
+      Imageurl: imageUrl,
+      updated_at: serverTimestamp(),
+    });
+  };
+
+  // Add menu item to Firestore
+  const handleAddMenu = async (menuData) => {
+    await addMenuItem(menuData);
+    // Refresh menu list
+    const menuCol = collection(db, 'menu');
+    const menuSnapshot = await getDocs(menuCol);
+    const menuList = menuSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setMenuItems(menuList);
+  };
+
+  // Update menu item in Firestore (to be used in edit modal)
+  const handleUpdateMenu = async (id, menuData) => {
+    await updateMenuItem(id, menuData);
+    // Refresh menu list
+    const menuCol = collection(db, 'menu');
+    const menuSnapshot = await getDocs(menuCol);
+    const menuList = menuSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setMenuItems(menuList);
+  };
+
   return (
     <div className="adminpanel-root">
       <AdminSidebar />
@@ -33,34 +98,42 @@ function AdminMenu() {
           <table className="crew-table">
             <thead>
               <tr>
-                <th>item_id</th>
+                <th>Product_id</th>
                 <th>Name</th>
                 <th>Price</th>
                 <th>Category</th>
                 <th>Availability</th>
                 <th>Images</th>
+                <th>Created</th>
                 <th>Updated</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td className="crew-id">001</td>
-                <td className="crew-fname">Milktie</td>
-                <td className="crew-lname">Price</td>
-                <td className="crew-email">Coffee</td>
-                <td className="crew-gender">Active</td>
-                <td className="crew-status"></td>
-                <td className="crew-created">02:06:12</td>
-                <td className="crew-actions">
-                  <button className="crew-action-btn" onClick={() => setEditModalOpen(true)}><FaEdit /></button>
-                  <button className="crew-action-btn" onClick={() => setRemoveModalOpen(true)}><FaTrash /></button>
-                </td>
-              </tr>
+              {menuItems.map((item, idx) => (
+                <tr key={item.id}>
+                  <td className="crew-id">{`Product${(idx + 1).toString().padStart(2, '0')}`}</td>
+                  <td className="crew-fname">{item.name}</td>
+                  <td className="crew-lname">{item.price}</td>
+                  <td className="crew-email">{item.category}</td>
+                  <td className="crew-gender">{item.availability ? 'Active' : 'Inactive'}</td>
+                  <td className="crew-status">
+                    {item.Imageurl ? (
+                      <img src={item.Imageurl} alt={item.name} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4 }} />
+                    ) : ''}
+                  </td>
+                  <td className="crew-created">{item.created_at && item.created_at.toDate ? item.created_at.toDate().toLocaleString() : ''}</td>
+                  <td className="crew-created">{item.updated_at && item.updated_at.toDate ? item.updated_at.toDate().toLocaleString() : ''}</td>
+                  <td className="crew-actions">
+                    <button className="crew-action-btn" onClick={() => setEditModalOpen(true)}><FaEdit /></button>
+                    <button className="crew-action-btn" onClick={() => setRemoveModalOpen(true)}><FaTrash /></button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-        <MenuAddModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} />
+        <MenuAddModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} onAdd={handleAddMenu} />
         <MenuEditModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} />
         <MenuRemoveModal isOpen={removeModalOpen} onClose={() => setRemoveModalOpen(false)} onConfirm={() => setRemoveModalOpen(false)} />
       </main>
