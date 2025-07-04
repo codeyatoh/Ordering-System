@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import './adminModal.css';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './admincrew.css';
 
 const CLOUD_NAME = 'dcmvbxxzy';
 const UPLOAD_PRESET = 'Ordering_System';
@@ -14,14 +14,26 @@ async function uploadToCloudinary(file) {
   return response.data.secure_url;
 }
 
-function MenuAddModal({ isOpen, onClose, onAdd }) {
+function EditMenu({ isOpen, onClose, onEdit, menuItem }) {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
-  const [category, setCategory] = useState('Coffee');
+  const [category, setCategory] = useState('');
   const [availability, setAvailability] = useState('Active');
   const [imageFile, setImageFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (menuItem) {
+      setName(menuItem.name || '');
+      setPrice(menuItem.price || '');
+      setCategory(menuItem.category || '');
+      setAvailability(menuItem.availability ? 'Active' : 'Inactive');
+      setImageUrl(menuItem.Imageurl || '');
+      setImageFile(null);
+    }
+  }, [menuItem, isOpen]);
 
   if (!isOpen) return null;
 
@@ -29,27 +41,22 @@ function MenuAddModal({ isOpen, onClose, onAdd }) {
     e.preventDefault();
     setError('');
     setUploading(true);
-    let imageUrl = '';
+    let finalImageUrl = imageUrl;
     try {
       if (imageFile) {
-        imageUrl = await uploadToCloudinary(imageFile);
+        finalImageUrl = await uploadToCloudinary(imageFile);
       }
-      await onAdd({
+      await onEdit({
         name,
         price,
-        category: category.toLowerCase(),
+        category,
         availability,
-        imageUrl,
+        imageUrl: finalImageUrl,
       });
-      setName('');
-      setPrice('');
-      setCategory('Coffee');
-      setAvailability('Active');
-      setImageFile(null);
       setUploading(false);
       onClose();
     } catch (err) {
-      setError('Failed to add menu. Please try again.');
+      setError('Failed to update menu. Please try again.');
       setUploading(false);
     }
   };
@@ -57,7 +64,7 @@ function MenuAddModal({ isOpen, onClose, onAdd }) {
   return (
     <div className="admin-modal-overlay">
       <div className="admin-modal">
-        <h2 className="admin-modal-title">Add Menu</h2>
+        <h2 className="admin-modal-title">Edit Menu</h2>
         <form className="admin-modal-form" onSubmit={handleSubmit}>
           <div className="admin-modal-form-row">
             <div className="admin-modal-form-group">
@@ -89,14 +96,17 @@ function MenuAddModal({ isOpen, onClose, onAdd }) {
           <div className="admin-modal-form-row">
             <div className="admin-modal-form-group">
               <label>Images *</label>
-              <input type="file" className="admin-modal-input" style={{ padding: 0 }} onChange={e => setImageFile(e.target.files[0])} required />
+              <input type="file" className="admin-modal-input" style={{ padding: 0 }} onChange={e => setImageFile(e.target.files[0])} />
+              {imageUrl && !imageFile && (
+                <img src={imageUrl} alt="Current" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4, marginTop: 8 }} />
+              )}
             </div>
             <div className="admin-modal-form-group"></div>
           </div>
           {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
           <div className="admin-modal-actions">
             <button type="button" className="admin-modal-cancel-btn" onClick={onClose} disabled={uploading}>Cancel</button>
-            <button type="submit" className="admin-modal-update-btn" disabled={uploading}>{uploading ? 'Uploading...' : 'Add Menu'}</button>
+            <button type="submit" className="admin-modal-update-btn" disabled={uploading}>{uploading ? 'Updating...' : 'Update Menu'}</button>
           </div>
         </form>
       </div>
@@ -104,4 +114,4 @@ function MenuAddModal({ isOpen, onClose, onAdd }) {
   );
 }
 
-export default MenuAddModal;
+export default EditMenu;
