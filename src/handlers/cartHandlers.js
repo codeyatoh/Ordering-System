@@ -95,11 +95,11 @@ async function handlePlaceOrder(orderData) {
 
     // 2. Prepare data for Executive Dashboard
     const execOrderData = {
-      orderId: firebaseOrder.id, // or whatever Firebase returns as the order ID
-      customer: orderData.customerName,
-      items: orderData.items,
-      total: orderData.total,
-      orderedAt: new Date().toISOString()
+      orderId: firebaseOrder.id,      // The order ID from Firebase
+      crew: orderData.crewName,       // The crew member's name or ID
+      items: orderData.items,         // The items in the order
+      total: orderData.total,         // The total price
+      orderedAt: new Date().toISOString() // The order timestamp
     };
 
     // 3. Send to FeathersJS backend
@@ -108,7 +108,7 @@ async function handlePlaceOrder(orderData) {
     // 4. Success feedback (optional)
     alert("Order placed and sent to Executive Dashboard!");
   } catch (error) {
-    console.error("Order failed:", error);
+    console.error("Order failed:", error); 
     alert("Order failed. Please try again.");
   }
 } 
