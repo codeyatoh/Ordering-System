@@ -1,4 +1,4 @@
-# Ordering System (React + Vite)
+# Ordering System (React + Vite + Firestore Database)
 
 A full-featured ordering and management system for a coffee shop, built with React, Vite, and Firebase. This system supports both admin and crew roles, with a modern UI for order placement, menu management, crew management, and sales analytics.
 
