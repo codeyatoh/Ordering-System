@@ -1,6 +1,8 @@
 // src/handlers/cartHandlers.js
 // Handler functions for cart operations in the CoffeeShop
 
+import axios from "axios";
+
 // Handles clearing the cart
 export const handleCancel = (setCart) => () => setCart([]);
 
@@ -84,4 +86,29 @@ export const handleViewProduct = (setSelectedItem, setSelectedQuantities, setIsC
     setSelectedQuantity(item.quantity || 1);
     setIsBreadModalOpen(true);
   }
-}; 
+};
+
+async function handlePlaceOrder(orderData) {
+  try {
+    // 1. Save to Firebase (your existing logic)
+    const firebaseOrder = await saveOrderToFirebase(orderData); // your function
+
+    // 2. Prepare data for Executive Dashboard
+    const execOrderData = {
+      orderId: firebaseOrder.id, // or whatever Firebase returns as the order ID
+      customer: orderData.customerName,
+      items: orderData.items,
+      total: orderData.total,
+      orderedAt: new Date().toISOString()
+    };
+
+    // 3. Send to FeathersJS backend
+    await axios.post("http://localhost:3030/external-orders", execOrderData);
+
+    // 4. Success feedback (optional)
+    alert("Order placed and sent to Executive Dashboard!");
+  } catch (error) {
+    console.error("Order failed:", error);
+    alert("Order failed. Please try again.");
+  }
+} 
