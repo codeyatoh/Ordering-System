@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../admin.sidebar';
 import '../adminpanel.css';
 import { Bar, Pie } from 'react-chartjs-2';
@@ -13,60 +13,112 @@ import {
   ArcElement,
 } from 'chart.js';
 import { FaRegCalendarAlt, FaRegClock } from 'react-icons/fa';
+import { db } from '../../../firebase';
+import { collection, getDocs, query, where, Timestamp, onSnapshot } from 'firebase/firestore';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
-
-const mockSalesData = {
-  day: {
-    labels: ['10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM'],
-    today: [200000, 180000, 220000, 170000, 150000, 160000, 175000, 180000],
-    yesterday: [190000, 170000, 210000, 160000, 140000, 150000, 165000, 170000],
-  },
-  week: {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    today: [1200000, 1300000, 1100000, 1400000, 1350000, 1500000, 1450000],
-    yesterday: [1100000, 1200000, 1000000, 1300000, 1250000, 1400000, 1350000],
-  },
-  month: {
-    labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
-    today: Array.from({ length: 30 }, () => Math.floor(Math.random() * 1000000) + 1000000),
-    yesterday: Array.from({ length: 30 }, () => Math.floor(Math.random() * 1000000) + 900000),
-  },
-};
 
 function Admindashboard() {
   const [filter, setFilter] = useState('day');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const salesData = mockSalesData[filter];
+  useEffect(() => {
+    let unsubscribe;
+    async function fetchOrders() {
+      setLoading(true);
+      let start, end;
+      const now = new Date();
+      if (filter === 'day') {
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      } else if (filter === 'week') {
+        const day = now.getDay();
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (6 - day) + 1);
+      } else if (filter === 'month') {
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      }
+      const q = query(
+        collection(db, 'orders'),
+        where('created_at', '>=', Timestamp.fromDate(start)),
+        where('created_at', '<', Timestamp.fromDate(end))
+      );
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        setOrders(snapshot.docs.map(doc => doc.data()));
+        setLoading(false);
+      });
+    }
+    fetchOrders();
+    return () => unsubscribe && unsubscribe();
+  }, [filter]);
+
+  // Aggregate sales by hour for 'day', by day for 'week', by day for 'month'
+  let labels = [];
+  let todayData = [];
+  if (filter === 'day') {
+    labels = ['10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM'];
+    todayData = Array(labels.length).fill(0);
+    orders.forEach(order => {
+      if (order.created_at && order.total_price) {
+        const date = order.created_at.toDate();
+        const hour = date.getHours();
+        let idx = hour - 10;
+        if (idx >= 0 && idx < labels.length) {
+          todayData[idx] += order.total_price;
+        }
+      }
+    });
+  } else if (filter === 'week') {
+    labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    todayData = Array(labels.length).fill(0);
+    orders.forEach(order => {
+      if (order.created_at && order.total_price) {
+        const date = order.created_at.toDate();
+        const day = date.getDay();
+        todayData[day] += order.total_price;
+      }
+    });
+  } else if (filter === 'month') {
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    labels = Array.from({ length: daysInMonth }, (_, i) => `Day ${i + 1}`);
+    todayData = Array(daysInMonth).fill(0);
+    orders.forEach(order => {
+      if (order.created_at && order.total_price) {
+        const date = order.created_at.toDate();
+        const day = date.getDate() - 1;
+        todayData[day] += order.total_price;
+      }
+    });
+  }
 
   const data = {
-    labels: salesData.labels,
+    labels,
     datasets: [
       {
-        label: 'Today',
-        data: salesData.today,
+        label: 'Sales',
+        data: todayData,
         backgroundColor: '#222',
         borderRadius: 4,
         barPercentage: 0.6,
         categoryPercentage: 0.7,
-      },
-      {
-        label: 'Yesterday',
-        data: salesData.yesterday,
-        backgroundColor: '#ff9800',
-        borderRadius: 4,
-        barPercentage: 0.6,
-        categoryPercentage: 0.7,
-      },
+      }
     ],
   };
+
+  // Summary cards
+  const totalSales = orders.reduce((a, b) => a + (b.total_price || 0), 0);
+  const orderItemsCount = orders.reduce((sum, order) => sum + (order.total_items || 0), 0);
+  const customerCount = orders.length; // 1 order = 1 customer
 
   const options = {
     responsive: true,
@@ -122,99 +174,6 @@ function Admindashboard() {
     maintainAspectRatio: false,
   };
 
-  // Mock summary cards
-  const totalSales = salesData.today.reduce((a, b) => a + b, 0);
-  const orderCount = salesData.today.length * 1000;
-  const customerCount = salesData.today.length * 2500;
-
-  // Mock top products data
-  const topProducts = [
-    {
-      name: 'Caramel Macchiato',
-      image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=facearea&w=64&h=64',
-      sold: 120,
-      satisfaction: 95,
-    },
-    {
-      name: 'Classic Latte',
-      image: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=facearea&w=64&h=64',
-      sold: 110,
-      satisfaction: 92,
-    },
-    {
-      name: 'Iced Americano',
-      image: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=facearea&w=64&h=64',
-      sold: 98,
-      satisfaction: 90,
-    },
-    {
-      name: 'Mocha Frappe',
-      image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=facearea&w=64&h=64',
-      sold: 85,
-      satisfaction: 88,
-    },
-    {
-      name: 'Spanish Latte',
-      image: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=facearea&w=64&h=64',
-      sold: 80,
-      satisfaction: 87,
-    },
-  ];
-
-  // Mock top products revenue data for Pie chart
-  const topProductsRevenue = [
-    { name: 'Caramel Macchiato', revenue: 120000 },
-    { name: 'Classic Latte', revenue: 95000 },
-    { name: 'Iced Americano', revenue: 80000 },
-    { name: 'Mocha Frappe', revenue: 70000 },
-    { name: 'Spanish Latte', revenue: 65000 },
-  ];
-
-  const pieData = {
-    labels: topProductsRevenue.map(p => p.name),
-    datasets: [
-      {
-        data: topProductsRevenue.map(p => p.revenue),
-        backgroundColor: [
-          '#FF9800',
-          '#4CAF50',
-          '#2196F3',
-          '#9C27B0',
-          '#F44336',
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const pieOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          font: { size: 12 },
-          color: '#222',
-        },
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            const label = context.label || '';
-            const value = context.parsed || 0;
-            return `${label}: ₱${value.toLocaleString()}`;
-          },
-        },
-        backgroundColor: '#fff',
-        titleColor: '#222',
-        bodyColor: '#222',
-        borderColor: '#eee',
-        borderWidth: 1,
-      },
-    },
-    maintainAspectRatio: false,
-  };
-
   return (
     <div className="adminpanel-root">
       <AdminSidebar />
@@ -242,8 +201,8 @@ function Admindashboard() {
             <div style={{ color: '#4caf50', fontSize: 11, fontWeight: 400 }}>▲ +5%</div>
           </div>
           <div style={{ flex: 1, background: '#fff', borderRadius: 6, padding: 10, boxShadow: 'none', border: '1px solid #f2f2f2', minWidth: 0 }}>
-            <div style={{ fontSize: 12, color: '#888', fontWeight: 400 }}>Order Count</div>
-            <div style={{ fontSize: 20, fontWeight: 600, color: '#222' }}>{orderCount.toLocaleString()}</div>
+            <div style={{ fontSize: 12, color: '#888', fontWeight: 400 }}>Order Items</div>
+            <div style={{ fontSize: 20, fontWeight: 600, color: '#222' }}>{orderItemsCount.toLocaleString()}</div>
             <div style={{ color: '#4caf50', fontSize: 11, fontWeight: 400 }}>▲ +5%</div>
           </div>
           <div style={{ flex: 1, background: '#fff', borderRadius: 6, padding: 10, boxShadow: 'none', border: '1px solid #f2f2f2', minWidth: 0 }}>

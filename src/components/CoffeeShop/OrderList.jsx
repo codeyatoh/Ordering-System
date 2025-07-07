@@ -7,7 +7,7 @@ import { getCoffeeSummary, getPastrySummary, groupCartItems } from '../../utils/
 import { toast } from 'react-toastify';
 
 // This component shows the list of items in the user's order (cart)
-function OrderList({ cart, onEditItem, onRemoveItem, customerPayment, setCustomerPayment }) {
+function OrderList({ cart, onEditItem, onRemoveItem, customerPayment, setCustomerPayment, orderType, totalPrice, totalItems, onCancel, onDone }) {
   // State for showing/hiding the remove item modal
   const [showRemove, setShowRemove] = useState(false);
   // State for which item is selected to be removed
@@ -23,6 +23,16 @@ function OrderList({ cart, onEditItem, onRemoveItem, customerPayment, setCustome
   const handleRemove = (item) => {
     onRemoveItem(item);
     toast.info(`${item.name} removed from cart.`);
+  };
+
+  // Handler for Done button with payment validation
+  const handleDoneClick = () => {
+    if (!customerPayment || Number(customerPayment) <= 0) return;
+    if (Number(customerPayment) < Number(totalPrice)) {
+      toast.error('Customer payment is less than the total order amount.');
+      return;
+    }
+    onDone();
   };
 
   return (
@@ -67,8 +77,12 @@ function OrderList({ cart, onEditItem, onRemoveItem, customerPayment, setCustome
           </ul>
         )}
       </div>
-      {/* Footer for customer payment */}
+      {/* Footer for order info, total, and customer payment */}
       <div className="order-list-footer">
+        <div className="order-list-summary-compact">
+          <span className="order-list-summary-type">{orderType === 'dine-in' ? 'Dine In' : 'Take Out'}</span>
+          <span className="order-list-summary-total">₱{Number(totalPrice).toFixed(2)} • {totalItems} Items</span>
+        </div>
         <label htmlFor="customer-payment" className="order-list-footer-label">Customer Payment:</label>
         <div className="order-list-footer-input-wrapper">
           <span className="order-list-footer-peso">₱</span>
@@ -81,6 +95,16 @@ function OrderList({ cart, onEditItem, onRemoveItem, customerPayment, setCustome
             value={customerPayment}
             onChange={e => setCustomerPayment(e.target.value)}
           />
+        </div>
+        <div className="order-list-footer-actions">
+          <button className="order-list-cancel-btn" onClick={onCancel}>Cancel</button>
+          <button
+            className="order-list-done-btn"
+            onClick={handleDoneClick}
+            disabled={!customerPayment || Number(customerPayment) < Number(totalPrice)}
+          >
+            Done
+          </button>
         </div>
       </div>
     </aside>

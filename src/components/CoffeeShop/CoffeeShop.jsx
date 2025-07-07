@@ -1,10 +1,9 @@
 // This is the main CoffeeShop page component
 import React, { useState, useEffect, useContext } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import ProductGrid from './ProductGrid';
-import OrderSummary from './OrderSummary';
 import CoffeeModal from '../Modal/coffeeModal';
 import BreadModal from '../Modal/breadModal';
 import OrderList from './OrderList';
@@ -43,6 +42,7 @@ function CoffeeShop() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [menuItems, setMenuItems] = useState([]);
   const { crew, userType } = useContext(UserContext);
+  const navigate = useNavigate();
 
   // Fetch menu items from Firestore
   useEffect(() => {
@@ -133,6 +133,10 @@ function CoffeeShop() {
       toast.error('Please enter customer payment before completing the order.');
       return;
     }
+    if (!crew?.crew_id) {
+      toast.error('Crew ID is missing. Please log in again or contact admin.');
+      return;
+    }
     const newOrderNumber = generateOrderNumber();
     setOrderNumber(newOrderNumber);
     setShowReceipt(true);
@@ -141,12 +145,12 @@ function CoffeeShop() {
     try {
       await addDoc(collection(db, 'orders'), {
         order_id: newOrderNumber,
-        crew_id: crew?.crew_id || '',
+        crew_id: crew.crew_id,
         total_items: getTotalItems(),
         total_price: getTotalPrice(),
         order_status: 'Complete',
         created_at: serverTimestamp(),
-        items: cart.map(item => ({
+        order_items: cart.map(item => ({
           ...item,
         })),
         payment: {
@@ -167,6 +171,7 @@ function CoffeeShop() {
     setOrderNumber(null);
     setCart([]);
     setCustomerPayment('');
+    navigate('/dining-location'); // Go to dining location page
   };
 
   // Format items for receipt
@@ -215,7 +220,18 @@ function CoffeeShop() {
           {/* Show the products for the selected category */}
           <ProductGrid items={filteredItems} onAddToCart={addToCart} onViewProduct={handleViewProduct} />
         </main>
-        <OrderList cart={cart} onEditItem={handleViewProduct} onRemoveItem={removeItem} customerPayment={customerPayment} setCustomerPayment={setCustomerPayment} />
+        <OrderList
+          cart={cart}
+          onEditItem={handleViewProduct}
+          onRemoveItem={removeItem}
+          customerPayment={customerPayment}
+          setCustomerPayment={setCustomerPayment}
+          orderType={orderType}
+          totalPrice={getTotalPrice()}
+          totalItems={getTotalItems()}
+          onCancel={cancelOrder}
+          onDone={handleOrderDone}
+        />
       </div>
       {/* Show receipt after checkout */}
       {showReceipt && (
@@ -229,17 +245,6 @@ function CoffeeShop() {
           change={Number(customerPayment) - getTotalPrice()}
           onStartNewOrder={handleStartNewOrder}
           onPrint={() => window.print()}
-        />
-      )}
-      {/* Show the order summary (total, cancel, done) only if not showing receipt */}
-      {!showReceipt && (
-        <OrderSummary 
-          orderType={orderType} 
-          totalPrice={getTotalPrice()} 
-          totalItems={getTotalItems()} 
-          onCancel={cancelOrder} 
-          onDone={handleOrderDone}
-          customerPayment={customerPayment}
         />
       )}
       {/* Modal for editing coffee order */}

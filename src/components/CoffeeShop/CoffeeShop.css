@@ -616,4 +616,95 @@
   opacity: 1;
   font-weight: 400;
   font-family: 'Poppins', sans-serif;
+}
+
+.order-list-summary-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  background: #232b23;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.7rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #DCD7C9;
+}
+
+.order-list-summary-type {
+  background: #A27B5C;
+  color: #2C3930;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.order-list-summary-total {
+  color: #DCD7C9;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .order-list-summary-compact {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    font-size: 0.95rem;
+    padding: 0.5rem 0.5rem;
+  }
+  .order-list-summary-type, .order-list-summary-total {
+    font-size: 0.95rem;
+  }
+}
+
+.order-list-footer-actions {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 0.7rem;
+  justify-content: flex-end;
+}
+
+.order-list-cancel-btn,
+.order-list-done-btn {
+  padding: 0.4rem 1.1rem;
+  font-size: 0.98rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.order-list-cancel-btn {
+  background: #A27B5C;
+  color: #2C3930;
+}
+
+.order-list-cancel-btn:hover {
+  background: #8d6847;
+}
+
+.order-list-done-btn {
+  background: #DCD7C9;
+  color: #2C3930;
+}
+
+.order-list-done-btn:disabled {
+  background: #bfb9a6;
+  color: #8d8d8d;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.order-list-done-btn:hover:not(:disabled) {
+  background: #bfb9a6;
+}
+
+/* Remove old .order-summary styles */
+.order-summary, .order-info, .order-total, .order-actions {
+  display: none !important;
 } 
