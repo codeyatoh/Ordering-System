@@ -161,13 +161,47 @@ function CoffeeShop() {
         order_type: orderType,
       });
       // Send order to executive-dashboard-backend
+      const items = cart.flatMap(item => {
+        if (item.quantities) {
+          const sizeOptions = [
+            { label: 'Regular', value: 'regular', addOn: 0 },
+            { label: 'Medium', value: 'medium', addOn: 10 },
+            { label: 'Large', value: 'large', addOn: 20 },
+          ];
+          return sizeOptions.flatMap(opt => {
+            const qty = item.quantities[opt.value] || 0;
+            return qty > 0 ? [{
+              item_name: `${item.name} (${opt.label})`,
+              quantity: qty,
+              price: item.price + opt.addOn
+            }] : [];
+          });
+        } else {
+          return [{
+            item_name: item.name,
+            quantity: item.quantity,
+            price: item.price
+          }];
+        }
+      });
+      // Prevent sending if items is empty
+      if (!items.length) {
+        toast.error('Order must have at least one item.');
+        return;
+      }
       const orderData = {
         order_id: newOrderNumber,
         crew_id: crew.crew_id,
+        firstName: crew.first_name || 'Unknown',
+        lastName: crew.last_name || '',
+        email: crew.email || '',
+        gender: crew.gender || '',
+        status: crew.status || 'Active',
+        hire_date: crew.hire_date || new Date().toISOString(),
         total_price: getTotalPrice(),
         order_status: 'pending',
         created_at: new Date().toISOString(),
-        cart: cart // Pass the cart items to be processed
+        items
       };
       sendOrderToBackend(orderData, crew)
         .then(data => {

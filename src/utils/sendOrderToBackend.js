@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-// Updated data structure to match the migration schema:
+// Updated data structure to match the FeathersJS backend:
 // {
 //   order_id: "ORD123",
 //   crew_id: "CRW001", 
 //   total_price: 200.00,
 //   order_status: "pending",
 //   created_at: "2024-06-10T12:30:00Z",
-//   order_items: [
+//   items: [
 //     { item_name: "Coffee", quantity: 2, price: 100.00 },
 //     { item_name: "Burger", quantity: 1, price: 100.00 }
 //   ]
@@ -21,8 +21,8 @@ import axios from 'axios';
  */
 export async function sendOrderToBackend(orderData, crew) {
   try {
-    // Format cart items to match order_items table structure
-    const orderItems = orderData.cart.map(item => {
+    // Use a safe default for cart
+    const items = (orderData.cart || []).map(item => {
       if (item.quantities) {
         // Handle coffee with different sizes
         const sizeOptions = [
@@ -30,20 +30,19 @@ export async function sendOrderToBackend(orderData, crew) {
           { label: 'Medium', value: 'medium', addOn: 10 },
           { label: 'Large', value: 'large', addOn: 20 },
         ];
-        
         // Create separate order items for each size with quantity > 0
-        const items = [];
+        const result = [];
         sizeOptions.forEach(opt => {
           const qty = item.quantities[opt.value] || 0;
           if (qty > 0) {
-            items.push({
+            result.push({
               item_name: `${item.name} (${opt.label})`,
               quantity: qty,
               price: item.price + opt.addOn
             });
           }
         });
-        return items;
+        return result;
       } else {
         // Handle bread/pastry items
         return [{
@@ -54,14 +53,20 @@ export async function sendOrderToBackend(orderData, crew) {
       }
     }).flat(); // Flatten the array since coffee items can create multiple order items
 
-    // Prepare the data according to migration schema
+    // Prepare the data according to FeathersJS backend schema
     const backendData = {
       order_id: orderData.order_id,
       crew_id: orderData.crew_id,
+      firstName: orderData.firstName,
+      lastName: orderData.lastName,
+      email: orderData.email,
+      gender: orderData.gender,
+      status: orderData.status,
+      hire_date: orderData.hire_date,
       total_price: orderData.total_price,
       order_status: orderData.order_status || 'pending',
       created_at: orderData.created_at || new Date().toISOString(),
-      order_items: orderItems
+      items // <-- property is 'items' not 'order_items'
     };
 
     // Send to backend
