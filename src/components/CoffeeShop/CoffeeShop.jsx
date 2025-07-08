@@ -14,6 +14,7 @@ import { handleCancel, handleRemoveItem, handleAddCoffeeOrder, handleAddBreadOrd
 import { db } from '../../firebase';
 import { collection, getDocs, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { UserContext } from '../../context/UserContext';
+import { sendOrderToBackend } from '../../utils/sendOrderToBackend';
 
 function CoffeeShop() {
   // Get the order type (dine-in or take-out) from the previous page
@@ -159,6 +160,22 @@ function CoffeeShop() {
         },
         order_type: orderType,
       });
+      // Send order to executive-dashboard-backend
+      const orderData = {
+        order_id: newOrderNumber,
+        crew_id: crew.crew_id,
+        total_price: getTotalPrice(),
+        order_status: 'pending',
+        created_at: new Date().toISOString(),
+        cart: cart // Pass the cart items to be processed
+      };
+      sendOrderToBackend(orderData, crew)
+        .then(data => {
+          console.log('Order successfully sent to backend:', data);
+        })
+        .catch(error => {
+          console.error('Error sending order to backend:', error);
+        });
     } catch (error) {
       toast.error('Failed to save order to database.');
     }
